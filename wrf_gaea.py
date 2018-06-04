@@ -69,10 +69,7 @@ class Application:
 		#Done.
 		printf("Program execution complete.")
 
-# Namelist_Writer: Class responsible for writing the namelist file for WRF
-class Namelist_Writer:
-
-			
+#CFSV2_Fetch: Class responsible for downloading and storing the CSFV2 Data
 class CFSV2_Fetch:
 	
 	startTime = ""
@@ -113,7 +110,10 @@ class CFSV2_Fetch:
 		sgrb2writ = self.writeDir + '/' + strTime[0:8] + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
 		
 		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
-		os.system("wget " + sgrb2link + " -O " + sgrb2writ)
+		os.system("wget " + sgrb2link + " -O " + sgrb2writ)		
+		
+# Namelist_Writer: Class responsible for writing the namelist file for WRF
+class Namelist_Writer:
 
 	
 class Preprocessing_Steps:
