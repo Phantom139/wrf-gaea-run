@@ -52,7 +52,7 @@ class Application:
 		printf(" 2. Done")
 		#Step 3: Generate WRF Namelist File
 		printf(" 3. Generating namelist.input file")
-		
+		namelistGenerate = Namelist_Writer(self.startTime, self.runDays, self.runHours)
 		printf(" 3. Done")
 		#Step 4: Run the preprocessing steps
 		printf(" 4. Run WRF Pre-Processing Steps")
@@ -136,6 +136,14 @@ class Namelist_Writer:
 					newLine = line
 					newLine = newLine.replace("[run_days]", str(self.runDays))
 					newLine = newLine.replace("[run_hours]", str(self.runHours))
+					newLine = newLine.replace("[start_year]", str(self.startTime.year))
+					newLine = newLine.replace("[start_month]", str(self.startTime.month))
+					newLine = newLine.replace("[start_day]", str(self.startTime.day))
+					newLine = newLine.replace("[start_hour]", str(self.startTime.hour))
+					newLine = newLine.replace("[end_year]", str(self.endTime.year))
+					newLine = newLine.replace("[end_month]", str(self.endTime.month))
+					newLine = newLine.replace("[end_day]", str(self.endTime.day))
+					newLine = newLine.replace("[end_hour]", str(self.endTime.hour))					
 					target_file.write(newLine)
 	
 class Preprocessing_Steps:
