@@ -22,7 +22,9 @@ class Application:
 		with open("control.txt") as f: 
 			for line in f: 
 				tokenized = line.split()
-				if(tokenized[0].lower() == "starttime"):
+				if(tokenized[0][0] == '#'):
+					#Comment line, ignore
+				elif(tokenized[0].lower() == "starttime"):
 					self.startTime = tokenized[1]
 				elif(tokenized[0].lower() == "rundays"):
 					self.runDays = tokenized[1]

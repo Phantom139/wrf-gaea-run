@@ -1,0 +1,6 @@
+# control.txt
+# Parameter file for the wrf-gaea-run script
+starttime 2018061200
+rundays 10
+runhours 0
+writedir /data1/climlab/runs
