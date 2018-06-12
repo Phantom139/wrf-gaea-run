@@ -58,7 +58,7 @@ class Application:
 		printf(" 3. Done")
 		#Step 4: Run the preprocessing steps
 		printf(" 4. Run WRF Pre-Processing Steps")
-		
+		preprocessing = Preprocessing_Steps(self.writeDir, self.startTime)
 		printf(" 4. Done")
 		#Step 5: Run WRF
 		printf(" 5. Running WRF")
@@ -148,7 +148,20 @@ class Namelist_Writer:
 					newLine = newLine.replace("[end_hour]", str(self.endTime.hour))					
 					target_file.write(newLine)
 	
+# Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
 class Preprocessing_Steps:
+
+	startTime = ""
+	writeDir = ""
+
+	def __init__(self, writeDir, startTime):
+		self.writeDir = writeDir
+		self.startTime = startTime
+		os.system("module add wrf-3.9.1")
+	
+	def run_ungrib():
+		#ungrib.exe needs to run in the data directory
+		os.system("cd " + writeDir + '/' + self.startTime[0:8])
 
 class Run_WRF:
 
