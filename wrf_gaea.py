@@ -12,9 +12,9 @@ class Application:
 	#startTime: The time the model initializes (YYYYMMDDHH)
 	startTime = "2016030100"
 	#runDays: The amount of days the model will run
-	runDays = 1
+	runDays = 0
 	#runHours: The amount of hours the model will run (This is in addition to runDays (IE: Total = (runDays *24) + runHours))
-	runHours = 1
+	runHours = 0
 	#writeDir: The directory where output files need to be written
 	writeDir = ""
 
@@ -115,6 +115,28 @@ class CFSV2_Fetch:
 # Namelist_Writer: Class responsible for writing the namelist file for WRF
 class Namelist_Writer:
 
+	startTime = ""
+	endTime = ""
+	runDays = 0
+	runHours = 0
+	
+	def __init__(self, startTime, runDays, runHours):
+		self.startTime = datetime.datetime.strptime(startTime, "%Y%m%d%H")
+		self.runDays = runDays
+		self.runHours = runHours
+		
+		self.endTime = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
+		
+		generateNamelist()
+		
+	def generateNamelist():
+		with open("namelist.input", 'w') as target_file:
+			with open("namelist.template", 'r') as source_file:
+				for line in source_file:
+					newLine = line
+					newLine = newLine.replace("[run_days]", str(self.runDays))
+					newLine = newLine.replace("[run_hours]", str(self.runHours))
+					target_file.write(newLine)
 	
 class Preprocessing_Steps:
 
