@@ -15,8 +15,12 @@ class Application:
 	runDays = 0
 	#runHours: The amount of hours the model will run (This is in addition to runDays (IE: Total = (runDays *24) + runHours))
 	runHours = 0
-	#writeDir: The directory where output files need to be written
-	writeDir = ""
+	#headDir: The primary directory
+	headDir = ""
+	#cfsDir: The directory where the CFS files will be stored
+	cfsDir = ""
+	#wrfDir: The directory where WRF files need to be stored
+	wrfDir = ""
 
 	def loadSettings():
 		with open("control.txt") as f: 
@@ -30,12 +34,16 @@ class Application:
 					self.runDays = tokenized[1]
 				elif(tokenized[0].lower() == "runhours"):
 					self.runHours = tokenized[1]
-				elif(tokenized[0].lower() == "writedir"):
-					self.writeDir = tokenized[1]
+				elif(tokenized[0].lower() == "headdir"):
+					self.headDir = tokenized[1]					
+				elif(tokenized[0].lower() == "cfsdir"):
+					self.cfsDir = tokenized[1]					
+				elif(tokenized[0].lower() == "wrfdir"):
+					self.wrfDir = tokenized[1]
 				else:
 					printf("Unknown file setting found in control.txt: " + str(tokenized[0]) + " => " str(tokenized[1]))
 		#Test for program critical settings
-		if((not self.startTime) or (not self.runDays) or (not self.runHours) or (not self.writeDir)):
+		if((not self.startTime) or (not self.runDays) or (not self.runHours) or not (self.headDir) or (not self.cfsDir) or (not self.writeDir)):
 			printf("Program critical variable missing, check for existence of control.txt, abort.")
 			return False
 		else:
@@ -50,7 +58,7 @@ class Application:
 		printf(" 1. Done.")
 		#Step 2: Download CSFV2 Files
 		printf(" 2. Downloading CSFV2 Files")
-		downloads = CSFV2_Fetch(self.writeDir, self.startTime, self.runDays, self.runHours)
+		downloads = CSFV2_Fetch(self.cfsDir, self.startTime, self.runDays, self.runHours)
 		printf(" 2. Done")
 		#Step 3: Generate WRF Namelist File
 		printf(" 3. Generating namelist.input file")
@@ -58,7 +66,7 @@ class Application:
 		printf(" 3. Done")
 		#Step 4: Run the preprocessing steps
 		printf(" 4. Run WRF Pre-Processing Steps")
-		preprocessing = Preprocessing_Steps(self.writeDir, self.startTime)
+		preprocessing = Preprocessing_Steps(self.cfsDir, self.wrfDir, self.startTime)
 		printf(" 4. Done")
 		#Step 5: Run WRF
 		printf(" 5. Running WRF")
@@ -75,12 +83,12 @@ class Application:
 class CFSV2_Fetch:
 	
 	startTime = ""
-	writeDir = ""
+	cfsDir = ""
 	runDays = 1
 	runHours = 1
 
-	def __init__(self, writeDir, startTime, runDays, runHours):
-		self.writeDir = writeDir
+	def __init__(self, cfsDir, startTime, runDays, runHours):
+		self.cfsDir = cfsDir
 		self.startTime = datetime.datetime.strptime(startTime, "%Y%m%d%H")
 		self.runDays = runDays
 		self.runHours = runHours
@@ -88,6 +96,8 @@ class CFSV2_Fetch:
 		fetchFiles()
 		
 	def fetchFiles():
+		os.system("mkdir " + self.cfsDir + '/' + str(self.strftime('%Y%m%d%H')))
+	
 		enddate = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
 		dates = []
 		current = self.startTime
@@ -108,8 +118,8 @@ class CFSV2_Fetch:
 		
 		pgrb2link = prs_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' strTime + "/pgbf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
 		sgrb2link = flx_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' strTime + "/flxf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
-		pgrb2writ = self.writeDir + '/' + strTime[0:8] + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
-		sgrb2writ = self.writeDir + '/' + strTime[0:8] + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+		pgrb2writ = self.cfsDir + '/' + strTime[0:8] + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+		sgrb2writ = self.cfsDir + '/' + strTime[0:8] + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
 		
 		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
 		os.system("wget " + sgrb2link + " -O " + sgrb2writ)		
@@ -152,16 +162,21 @@ class Namelist_Writer:
 class Preprocessing_Steps:
 
 	startTime = ""
-	writeDir = ""
+	cfsDir = ""
+	wrfDir = ""
 
-	def __init__(self, writeDir, startTime):
-		self.writeDir = writeDir
+	def __init__(self, cfsDir, wrfDir, startTime):
+		self.cfsDir = cfsDir
+		self.wrfDir = wrfDir
 		self.startTime = startTime
 		os.system("module add wrf-3.9.1")
+		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
 	
 	def run_ungrib():
+		#Start by symlinking out files from the run folder 
+		os.system("ln -s " + cfsDir + '/' + strTime[0:8] + "/* " + wrfDir + '/' + strTime[0:8])
 		#ungrib.exe needs to run in the data directory
-		os.system("cd " + writeDir + '/' + self.startTime[0:8])
+		os.system("cd " + wrfDir + '/' + self.startTime[0:8])
 
 class Run_WRF:
 
