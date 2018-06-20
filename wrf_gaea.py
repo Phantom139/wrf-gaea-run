@@ -61,22 +61,31 @@ class Application:
 		downloads = CSFV2_Fetch(self.cfsDir, self.startTime, self.runDays, self.runHours)
 		printf(" 2. Done")
 		#Step 3: Generate WRF Namelist File
-		printf(" 3. Generating namelist.input file")
+		printf(" 3. Generating namelist files")
 		namelistGenerate = Namelist_Writer(self.startTime, self.runDays, self.runHours)
 		printf(" 3. Done")
-		#Step 4: Run the preprocessing steps
-		printf(" 4. Run WRF Pre-Processing Steps")
-		preprocessing = Preprocessing_Steps(self.cfsDir, self.wrfDir, self.startTime)
-		printf(" 4. Done")
-		#Step 5: Run WRF
-		printf(" 5. Running WRF")
+		#Step 4: Generate GAEA Job Files
+		printf(" 4. Generating GAEA Job Files")
 		
+		printf(" 4. Done")		
+		#Step 5: Run the preprocessing steps
+		printf(" 5. Run WRF Pre-Processing Steps")
+		preprocessing = Preprocessing_Steps(self.cfsDir, self.wrfDir, self.startTime)
 		printf(" 5. Done")
-		#Step 6: Run postprocessing steps
-		printf(" 6. Running post-processing")
+		#Step 6: Run WRF
+		printf(" 6. Running WRF")
 		
 		printf(" 6. Done")
+		#Step 7: Run postprocessing steps
+		printf(" 7. Running post-processing")
+		
+		printf(" 7. Done")
+		#Step 8: Cleanup
+		printf(" 8. Cleaning Temporary Files")
+		
+		printf(" 8. Done")		
 		#Done.
+		printf("All Steps Completed.")
 		printf("Program execution complete.")
 
 #CFSV2_Fetch: Class responsible for downloading and storing the CSFV2 Data
@@ -124,7 +133,7 @@ class CFSV2_Fetch:
 		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
 		os.system("wget " + sgrb2link + " -O " + sgrb2writ)		
 		
-# Namelist_Writer: Class responsible for writing the namelist file for WRF
+# Namelist_Writer: Class responsible for writing the namelist files for WRF
 class Namelist_Writer:
 
 	startTime = ""
@@ -139,11 +148,11 @@ class Namelist_Writer:
 		
 		self.endTime = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
 		
-		generateNamelist()
+		generateNamelistInput()
 		
-	def generateNamelist():
+	def generateNamelistInput():
 		with open("namelist.input", 'w') as target_file:
-			with open("namelist.template", 'r') as source_file:
+			with open("namelist.input.template", 'r') as source_file:
 				for line in source_file:
 					newLine = line
 					newLine = newLine.replace("[run_days]", str(self.runDays))
