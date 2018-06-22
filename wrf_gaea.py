@@ -6,50 +6,45 @@
 
 import sys, os, datetime, multiprocessing
 
+# Singleton: Wrapper instance for a single-ly defined class
+class Singleton:
+	__instance = None
+	
+	@staticmethod
+	def instance():
+		if Singleton.__instance == None:
+			Singleton()
+		else:
+			return Singleton.__instance
+	
+	def __init__(self):
+		if(Singleton.__instance != None):
+			printf("Singleton: Error, attempting to init a singleton that already exists")
+		else:
+			Singleton.__instance = self
+
 # Application: Class responsible for running the program steps.
-class Application:
-
-	#startTime: The time the model initializes (YYYYMMDDHH)
-	startTime = "2016030100"
-	#runDays: The amount of days the model will run
-	runDays = 0
-	#runHours: The amount of hours the model will run (This is in addition to runDays (IE: Total = (runDays *24) + runHours))
-	runHours = 0
-	#headDir: The primary directory
-	headDir = ""
-	#cfsDir: The directory where the CFS files will be stored
-	cfsDir = ""
-	#wrfDir: The directory where WRF files need to be stored
-	wrfDir = ""
-
+class Application(Singleton):
+	# Storage dictionary for program settings
+	settings = {}
+	
 	def loadSettings():
 		with open("control.txt") as f: 
 			for line in f: 
 				tokenized = line.split()
 				if(tokenized[0][0] == '#'):
 					#Comment line, ignore
-				elif(tokenized[0].lower() == "starttime"):
-					self.startTime = tokenized[1]
-				elif(tokenized[0].lower() == "rundays"):
-					self.runDays = tokenized[1]
-				elif(tokenized[0].lower() == "runhours"):
-					self.runHours = tokenized[1]
-				elif(tokenized[0].lower() == "headdir"):
-					self.headDir = tokenized[1]					
-				elif(tokenized[0].lower() == "cfsdir"):
-					self.cfsDir = tokenized[1]					
-				elif(tokenized[0].lower() == "wrfdir"):
-					self.wrfDir = tokenized[1]
 				else:
-					printf("Unknown file setting found in control.txt: " + str(tokenized[0]) + " => " str(tokenized[1]))
+					self.settings[tokenized[0]] = tokenized[1]
 		#Test for program critical settings
-		if((not self.startTime) or (not self.runDays) or (not self.runHours) or not (self.headDir) or (not self.cfsDir) or (not self.writeDir)):
-			printf("Program critical variable missing, check for existence of control.txt, abort.")
+		if(not self.settings):
+			printf("Program critical variables missing, check for existence of control.txt, abort.")
 			return False
 		else:
 			return True
 			
 	def __init__(self):
+		super().__init__()
 		printf("Initializing WRF Auto-Run Program")
 		#Step 1: Load program settings
 		printf(" 1. Loading program settings")
@@ -58,11 +53,11 @@ class Application:
 		printf(" 1. Done.")
 		#Step 2: Download CSFV2 Files
 		printf(" 2. Downloading CSFV2 Files")
-		downloads = CSFV2_Fetch(self.cfsDir, self.startTime, self.runDays, self.runHours)
+		downloads = CSFV2_Fetch()
 		printf(" 2. Done")
 		#Step 3: Generate WRF Namelist File
 		printf(" 3. Generating namelist files")
-		namelistGenerate = Namelist_Writer(self.startTime, self.runDays, self.runHours)
+		namelistGenerate = Namelist_Writer()
 		printf(" 3. Done")
 		#Step 4: Generate GAEA Job Files
 		printf(" 4. Generating GAEA Job Files")
@@ -70,7 +65,7 @@ class Application:
 		printf(" 4. Done")		
 		#Step 5: Run the preprocessing steps
 		printf(" 5. Run WRF Pre-Processing Steps")
-		preprocessing = Preprocessing_Steps(self.cfsDir, self.wrfDir, self.startTime)
+		preprocessing = Preprocessing_Steps()
 		printf(" 5. Done")
 		#Step 6: Run WRF
 		printf(" 6. Running WRF")
@@ -89,18 +84,18 @@ class Application:
 		printf("Program execution complete.")
 
 #CFSV2_Fetch: Class responsible for downloading and storing the CSFV2 Data
-class CFSV2_Fetch:
+class CFSV2_Fetch():
 	
 	startTime = ""
 	cfsDir = ""
 	runDays = 1
 	runHours = 1
 
-	def __init__(self, cfsDir, startTime, runDays, runHours):
-		self.cfsDir = cfsDir
-		self.startTime = datetime.datetime.strptime(startTime, "%Y%m%d%H")
-		self.runDays = runDays
-		self.runHours = runHours
+	def __init__(self):
+		self.cfsDir = Application.instance().settings["cfsDir"]
+		self.startTime = datetime.datetime.strptime(Application.instance().settings["startTime"], "%Y%m%d%H")
+		self.runDays = Application.instance().settings["runDays"]
+		self.runHours = Application.instance().settings["runHours"]
 		
 		fetchFiles()
 		
@@ -141,10 +136,10 @@ class Namelist_Writer:
 	runDays = 0
 	runHours = 0
 	
-	def __init__(self, startTime, runDays, runHours):
-		self.startTime = datetime.datetime.strptime(startTime, "%Y%m%d%H")
-		self.runDays = runDays
-		self.runHours = runHours
+	def __init__(self):
+		self.startTime = datetime.datetime.strptime(Application.instance().settings["startTime"], "%Y%m%d%H")
+		self.runDays = Application.instance().settings["runDays"]
+		self.runHours = Application.instance().settings["runHours"]
 		
 		self.endTime = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
 		
@@ -174,10 +169,10 @@ class Preprocessing_Steps:
 	cfsDir = ""
 	wrfDir = ""
 
-	def __init__(self, cfsDir, wrfDir, startTime):
-		self.cfsDir = cfsDir
-		self.wrfDir = wrfDir
-		self.startTime = startTime
+	def __init__(self):
+		self.cfsDir = Application.instance().settings["cfsDir"]
+		self.wrfDir = Application.instance().settings["wrfDir"]
+		self.startTime = Application.instance().settings["startTime"]
 		os.system("module add wrf-3.9.1")
 		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
 	
