@@ -1,8 +1,32 @@
 # control.txt
 # Parameter file for the wrf-gaea-run script
+#  Information:
+#   Lines that begin with a '#' are comment lines and are ignored
+#   All other lines will store a variable under the name of the first word, with the value of the second
+#   EX: myVariable 12
+#   Would store the parameter myVariable as 12
+#
+# General Parameters
 starttime 2018061200
 rundays 10
 runhours 0
 headdir /data1/climlab
 cfsdir /data1/climlab/cfs_data
 wrfdir /data1/climlab/runs
+# Geogrid Parameters
+
+# Ungrib Parameters
+
+# Metgrid Parameters
+num_metgrid_nodes 2
+num_metgrid_processors 5
+metgrid_walltime 06:00:00
+# Real Parameters
+num_real_nodes 10
+num_real_processors 1
+real_walltime 02:00:00
+# WRF Parameters
+num_wrf_nodes 8
+num_wrf_processors 12
+wrf_walltime 70:00:00
+# Post-Processing Parameters
