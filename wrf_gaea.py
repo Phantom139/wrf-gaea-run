@@ -168,18 +168,9 @@ class CFSV2_Fetch():
 # Template_Writer: Class responsible for taking the template files and saving the use files with parameters set
 class Template_Writer:
 	aSet = None
-	startTime = ""
-	endTime = ""
-	runDays = 0
-	runHours = 0
 	
 	def __init__(self, settings):
 		self.aSet = settings
-		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
-		self.runDays = settings.fetch("rundays")
-		self.runHours = settings.fetch("runhours")
-		
-		self.endTime = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
 					
 	def generateTemplatedFile(self, inFile, outFile):
 		with open(outFile, 'w') as target_file:
@@ -190,7 +181,6 @@ class Template_Writer:
 	
 # Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
 class Preprocessing_Steps:
-
 	startTime = ""
 	cfsDir = ""
 	wrfDir = ""
