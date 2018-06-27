@@ -15,29 +15,29 @@ class AppSettings():
 	settings = {}
 	replacementKeys = {}
 
-    def loadSettings(self):
-        with open("control.txt") as f: 
-            for line in f: 
-                tokenized = line.split()
-                if(tokenized[0][0] == '#'):
-                    #Comment line, ignore
-                    print("Comment line: " + line)
-                else:
-                    self.settings[tokenized[0]] = tokenized[1]
-                    print("Applying setting (" + tokenized[0] +"): " + tokenized[1])
-        #Test for program critical settings
-        if(not self.settings):
-            print("Program critical variables missing, check for existence of control.txt, abort.")
-            return False
-        else:
-            return True
+	def loadSettings(self):
+		with open("control.txt") as f: 
+			for line in f: 
+				tokenized = line.split()
+				if(tokenized[0][0] == '#'):
+					#Comment line, ignore
+					print("Comment line: " + line)
+				else:
+					self.settings[tokenized[0]] = tokenized[1]
+					print("Applying setting (" + tokenized[0] +"): " + tokenized[1])
+		#Test for program critical settings
+		if(not self.settings):
+			print("Program critical variables missing, check for existence of control.txt, abort.")
+			return False
+		else:
+			return True
         
-    def fetch(self, key):
-        try:
-            return self.settings[key]
-        except KeyError:
-            print("Key does not exist")
-            return None    
+	def fetch(self, key):
+		try:
+			return self.settings[key]
+		except KeyError:
+			print("Key does not exist")
+			return None    
 			
 	def assembleKeys(self):
 		# Construct the replacement dictionary from the settings
@@ -59,7 +59,7 @@ class AppSettings():
 		replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
 		replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
 	 
-    def replace(self, str):
+	def replace(self, str):
 		if not str:
 			#print("AppSettings::replace(): Error, no string sent)
 			return str
@@ -68,16 +68,16 @@ class AppSettings():
 			fStr = fStr.replace(key, value)
 		return fStr
      
-    def __init__(self):
-        if(self.loadSettings() == False):
-            sys.exit("Failed to load settings, please check for control.txt")
+	def __init__(self):
+		if(self.loadSettings() == False):
+			sys.exit("Failed to load settings, please check for control.txt")
         
-        self.startTime = datetime.datetime.strptime(self.fetch("starttime"), "%Y%m%d%H")
-        self.runDays = self.fetch("rundays")
-        self.runHours = self.fetch("runhours")
+		self.startTime = datetime.datetime.strptime(self.fetch("starttime"), "%Y%m%d%H")
+		self.runDays = self.fetch("rundays")
+		self.runHours = self.fetch("runhours")
 
-        self.endTime = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
-		
+		self.endTime = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
+
 		self.assemblyKeys()
 
 # Application: Class responsible for running the program steps.
