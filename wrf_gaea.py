@@ -95,11 +95,56 @@ class AppSettings():
 		self.endTime = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
 
 		self.assembleKeys()
+		
+# Template_Writer: Class responsible for taking the template files and saving the use files with parameters set
+class Template_Writer:
+	aSet = None
+	
+	def __init__(self, settings):
+		self.aSet = settings
+					
+	def generateTemplatedFile(self, inFile, outFile):
+		with open(outFile, 'w') as target_file:
+			with open(inFile, 'r') as source_file:
+				for line in source_file:
+					newLine = line
+					newLine = aSet.replace(newLine)				
+					target_file.write(newLine)	
+
+# Wait: Class instance designed to establish a hold condition until execution has been completed
+class Wait:
+	waitCommand = ""
+	currentTime = ""
+	abortTime = ""
+	condition = ""
+	timeDelay = ""
+	
+	def __init__(self, waitCommand, condition, abortTime = None, timeDelay=60):
+		self.waitCommand = waitCommand
+		self.condition = condition
+		self.currentTime = datetime.datetime.utcnow()
+		self.abortTime = self.currentTime + datetime.timedelta(days=int(999))
+		self.timeDelay = timeDelay
+		if(abortTime != None):
+			self.abortTime = self.currentTime + datetime.timedelta(seconds=int(abortTime))
+		
+		self.hold()
+	
+	def hold():
+		cTime = datetime.datetime.utcnow()
+		if(cTime > self.abortTime):
+			print("Wait(): Abort time elapsed, breaking wait")
+			return False
+		cResult = os.popen(self.waitCommand).read()
+		if(condition in cResult):
+			return True
+		time.sleep(self.timeDelay)
+		return self.hold()
 
 # Application: Class responsible for running the program steps.
 class Application():
 	# Storage dictionary for program settings
-	settings = {}
+	settings = None
 			
 	def __init__(self):
 		print("Initializing WRF Auto-Run Program")
@@ -115,10 +160,26 @@ class Application():
 		print(" 3. Generating run files from templates")
 		tWrite = Template_Writer(settings)
 		tWrite.generateTemplatedFile("namelist.input.template", "namelist.input")
+		tWrite.generateTemplatedFile("namelist.wps.3D.template", "namelist.wps.3D")
+		tWrite.generateTemplatedFile("namelist.wps.FLX.template", "namelist.wps.FLX")
+		tWrite.generateTemplatedFile("geogrid.job.template", "geogrid.job")
+		tWrite.generateTemplatedFile("metgrid.job.template", "metgrid.job")
+		tWrite.generateTemplatedFile("real.job.template", "real.job")
+		tWrite.generateTemplatedFile("wrf.job.template", "wrf.job")
 		print(" 3. Done")
 		#Step 4: Run the preprocessing steps
 		print(" 4. Run WRF Pre-Processing Steps")
 		preprocessing = Preprocessing_Steps(settings)
+		print(" 4.a Checking for geogrid flag...")
+		if(settings.fetch("run_geogrid") == '1'):
+			print(" 4.a Geogrid flag is set, preparing geogrid job.")
+			
+			print(" 4.a Done")
+		else:
+			print(" 4.a Geogrid flag is not set, skipping step")
+		print(" 4.b. Running pre-processing executables")
+		
+		print(" 4.b. Done")
 		print(" 4. Done")
 		#Step 5: Run WRF
 		print(" 5. Running WRF")
@@ -180,43 +241,31 @@ class CFSV2_Fetch():
 		
 		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
 		os.system("wget " + sgrb2link + " -O " + sgrb2writ)		
-		
-# Template_Writer: Class responsible for taking the template files and saving the use files with parameters set
-class Template_Writer:
-	aSet = None
-	
-	def __init__(self, settings):
-		self.aSet = settings
-					
-	def generateTemplatedFile(self, inFile, outFile):
-		with open(outFile, 'w') as target_file:
-			with open(inFile, 'r') as source_file:
-				for line in source_file:
-					newLine = line
-					newLine = aSet.replace(newLine)				
-					target_file.write(newLine)	
 	
 # Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
 class Preprocessing_Steps:
+	aSet = None
 	startTime = ""
 	cfsDir = ""
 	wrfDir = ""
 
 	def __init__(self, settings):
+		self.aSet = settings
 		self.cfsDir = settings.fetch("cfsdir")
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
 		os.system("module add wrf-3.9.1")
 		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
-		print("Checking for geogrid flag...")
-		if(settings.fetch("run_geogrid") == '1'):
-			print("geogrid flag is set, preparing geogrid job.")
+	
+	def run_geogrid(self):
 	
 	def run_ungrib(self):
 		#Start by symlinking out files from the run folder 
 		os.system("ln -s " + cfsDir + '/' + strTime[0:8] + "/* " + wrfDir + '/' + strTime[0:8])
 		#ungrib.exe needs to run in the data directory
 		os.system("cd " + wrfDir + '/' + self.startTime[0:8])
+		
+	def run_metgrid(self):
 
 class Run_WRF:
 
