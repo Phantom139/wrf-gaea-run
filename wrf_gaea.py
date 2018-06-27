@@ -8,12 +8,11 @@ import sys, os, datetime, multiprocessing
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
 class AppSettings():
-    startTime = ""
-    endTime = ""
-    runDays = 0
-    runHours = 0    
-    
-    settings = {}
+	startTime = ""
+	endTime = ""
+	runDays = 0
+	runHours = 0
+	settings = {}
 	replacementKeys = {}
 
     def loadSettings(self):
