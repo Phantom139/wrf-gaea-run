@@ -14,6 +14,7 @@ class AppSettings():
     runHours = 0    
     
     settings = {}
+	replacementKeys = {}
 
     def loadSettings(self):
         with open("control.txt") as f: 
@@ -38,43 +39,36 @@ class AppSettings():
         except KeyError:
             print("Key does not exist")
             return None    
-    
-    def replace(self, key, parms = None):
-        if key == "[run_days]":
-            return str(self.runDays)
-        elif key == "[run_hours]":
-            return str(self.runHours)
-		elif key == "[start_date]":
-			return str(self.startTime.strftime('%y-%m-%d_%H:%M:%S'))
-		elif key == "[end_date]":
-			return str(self.endTime.strftime('%y-%m-%d_%H:%M:%S'))			
-		elif key == "[start_year]":
-			return str(self.startTime.year)
-		elif key == "[start_month]":
-			return str(self.startTime.month)			
-		elif key == "[start_day]":
-			return str(self.startTime.day)	
-		elif key == "[start_hour]":
-			return str(self.startTime.hour)		
-		elif key == "[end_year]":
-			return str(self.endTime.year)
-		elif key == "[end_month]":
-			return str(self.endTime.month)			
-		elif key == "[end_day]":
-			return str(self.endTime.day)	
-		elif key == "[end_hour]":
-			return str(self.endTime.hour)
-		elif key == "[geog_path]":
-			return self.fetch("geogdir")
-		elif key == "[table_path]":
-			return self.fetch("tabledir")
-		elif key == "[out_geogrid_path]":
-			return self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
-        else:
-            print("Key Error: Target Key " + key + " not present in list")
-            return None
-        
-        
+			
+	def assembleKeys(self):
+		# Construct the replacement dictionary from the settings
+		replacementKeys["[run_days]"] = str(self.runDays)
+		replacementKeys["[run_hours]"] = str(self.runHours)
+		replacementKeys["[start_date]"] = str(self.startTime.strftime('%y-%m-%d_%H:%M:%S'))
+		replacementKeys["[end_date]"] = str(self.endTime.strftime('%y-%m-%d_%H:%M:%S'))
+		replacementKeys["[start_year]"] = str(self.startTime.year)
+		replacementKeys["[start_month]"] = str(self.startTime.month)
+		replacementKeys["[start_day]"] = str(self.startTime.day)
+		replacementKeys["[start_hour]"] = str(self.startTime.hour)
+		replacementKeys["[end_year]"] = str(self.endTime.year)
+		replacementKeys["[end_month]"] = str(self.endTime.month)
+		replacementKeys["[end_day]"] = str(self.endTime.day)
+		replacementKeys["[end_hour]"] = str(self.endTime.hour)
+		replacementKeys["[geog_path]"] = self.fetch("geogdir")
+		replacementKeys["[table_path]"] = self.fetch("tabledir")
+		replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8]
+		replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
+		replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
+	 
+    def replace(self, str):
+		if not str:
+			#print("AppSettings::replace(): Error, no string sent)
+			return str
+		fStr = str
+		for key, value in self.replacementKeys.items():
+			fStr = fStr.replace(key, value)
+		return fStr
+     
     def __init__(self):
         if(self.loadSettings() == False):
             sys.exit("Failed to load settings, please check for control.txt")
@@ -84,6 +78,8 @@ class AppSettings():
         self.runHours = self.fetch("runhours")
 
         self.endTime = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
+		
+		self.assemblyKeys()
 
 # Application: Class responsible for running the program steps.
 class Application():
