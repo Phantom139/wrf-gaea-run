@@ -58,6 +58,22 @@ class AppSettings():
 		replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8]
 		replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
 		replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
+		replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
+		replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
+		replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
+		replacementKeys["[mpi_geogrid_total]"] = str(int(self.fetch("num_geogrid_nodes")) * int(self.fetch("num_geogrid_processors")))
+		replacementKeys["[num_metgrid_nodes]"] = self.fetch("num_metgrid_nodes")
+		replacementKeys["[num_metgrid_processors]"] = self.fetch("num_metgrid_processors")
+		replacementKeys["[metgrid_walltime]"] = self.fetch("metgrid_walltime")
+		replacementKeys["[mpi_metgrid_total]"] = str(int(self.fetch("num_metgrid_nodes")) * int(self.fetch("num_metgrid_processors")))
+		replacementKeys["[num_real_nodes]"] = self.fetch("num_real_nodes")
+		replacementKeys["[num_real_processors]"] = self.fetch("num_real_processors")
+		replacementKeys["[real_walltime]"] = self.fetch("real_walltime")
+		replacementKeys["[mpi_real_total]"] = str(int(self.fetch("num_real_nodes")) * int(self.fetch("num_real_processors")))	
+		replacementKeys["[num_wrf_nodes]"] = self.fetch("num_wrf_nodes")
+		replacementKeys["[num_wrf_processors]"] = self.fetch("num_wrf_processors")
+		replacementKeys["[wrf_walltime]"] = self.fetch("wrf_walltime")
+		replacementKeys["[mpi_wrf_total]"] = str(int(self.fetch("num_wrf_nodes")) * int(self.fetch("num_wrf_processors")))		
 	 
 	def replace(self, str):
 		if not str:
@@ -192,6 +208,9 @@ class Preprocessing_Steps:
 		self.startTime = settings.fetch("starttime")
 		os.system("module add wrf-3.9.1")
 		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
+		print("Checking for geogrid flag...")
+		if(settings.fetch("run_geogrid") == '1'):
+			print("geogrid flag is set, preparing geogrid job.")
 	
 	def run_ungrib(self):
 		#Start by symlinking out files from the run folder 
