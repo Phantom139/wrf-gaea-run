@@ -44,6 +44,32 @@ class AppSettings():
             return str(self.runDays)
         elif key == "[run_hours]":
             return str(self.runHours)
+		elif key == "[start_date]":
+			return str(self.startTime.strftime('%y-%m-%d_%H:%M:%S'))
+		elif key == "[end_date]":
+			return str(self.endTime.strftime('%y-%m-%d_%H:%M:%S'))			
+		elif key == "[start_year]":
+			return str(self.startTime.year)
+		elif key == "[start_month]":
+			return str(self.startTime.month)			
+		elif key == "[start_day]":
+			return str(self.startTime.day)	
+		elif key == "[start_hour]":
+			return str(self.startTime.hour)		
+		elif key == "[end_year]":
+			return str(self.endTime.year)
+		elif key == "[end_month]":
+			return str(self.endTime.month)			
+		elif key == "[end_day]":
+			return str(self.endTime.day)	
+		elif key == "[end_hour]":
+			return str(self.endTime.hour)
+		elif key == "[geog_path]":
+			return self.fetch("geogdir")
+		elif key == "[table_path]":
+			return self.fetch("tabledir")
+		elif key == "[out_geogrid_path]":
+			return self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
         else:
             print("Key Error: Target Key " + key + " not present in list")
             return None
@@ -74,30 +100,27 @@ class Application():
 		print(" 2. Downloading CSFV2 Files")
 		downloads = CSFV2_Fetch(settings)
 		print(" 2. Done")
-		#Step 3: Generate WRF Namelist File
-		print(" 3. Generating namelist files")
-		namelistGenerate = Namelist_Writer(settings)
+		#Step 3: Generate run files
+		print(" 3. Generating run files from templates")
+		tWrite = Template_Writer(settings)
+		tWrite.generateTemplatedFile("namelist.input.template", "namelist.input")
 		print(" 3. Done")
-		#Step 4: Generate GAEA Job Files
-		print(" 4. Generating GAEA Job Files")
-		
-		print(" 4. Done")		
-		#Step 5: Run the preprocessing steps
-		print(" 5. Run WRF Pre-Processing Steps")
+		#Step 4: Run the preprocessing steps
+		print(" 4. Run WRF Pre-Processing Steps")
 		preprocessing = Preprocessing_Steps(settings)
+		print(" 4. Done")
+		#Step 5: Run WRF
+		print(" 5. Running WRF")
+		
 		print(" 5. Done")
-		#Step 6: Run WRF
-		print(" 6. Running WRF")
+		#Step 6: Run postprocessing steps
+		print(" 6. Running post-processing")
 		
 		print(" 6. Done")
-		#Step 7: Run postprocessing steps
-		print(" 7. Running post-processing")
+		#Step 7: Cleanup
+		print(" 7. Cleaning Temporary Files")
 		
-		print(" 7. Done")
-		#Step 8: Cleanup
-		print(" 8. Cleaning Temporary Files")
-		
-		print(" 8. Done")		
+		print(" 7. Done")		
 		#Done.
 		print("All Steps Completed.")
 		print("Program execution complete.")
@@ -119,7 +142,7 @@ class CFSV2_Fetch():
 		self.fetchFiles()
 		
 	def fetchFiles(self):
-		os.system("mkdir " + self.cfsDir + '/' + str(self.strftime('%Y%m%d%H')))
+		os.system("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
 	
 		enddate = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
 		dates = []
@@ -147,8 +170,8 @@ class CFSV2_Fetch():
 		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
 		os.system("wget " + sgrb2link + " -O " + sgrb2writ)		
 		
-# Namelist_Writer: Class responsible for writing the namelist files for WRF
-class Namelist_Writer:
+# Template_Writer: Class responsible for taking the template files and saving the use files with parameters set
+class Template_Writer:
 	aSet = None
 	startTime = ""
 	endTime = ""
@@ -162,15 +185,13 @@ class Namelist_Writer:
 		self.runHours = settings.fetch("runhours")
 		
 		self.endTime = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
-		
-		self.generateNamelistInput()
-		
-	def generateNamelistInput(self):
-		with open("namelist.input", 'w') as target_file:
-			with open("namelist.input.template", 'r') as source_file:
+					
+	def generateTemplatedFile(self, inFile, outFile):
+		with open(outFile, 'w') as target_file:
+			with open(inFile, 'r') as source_file:
 				for line in source_file:
 					newLine = aSet.replace(line)				
-					target_file.write(newLine)
+					target_file.write(newLine)	
 	
 # Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
 class Preprocessing_Steps:
