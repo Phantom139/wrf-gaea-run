@@ -78,7 +78,7 @@ class AppSettings():
 
 		self.endTime = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
 
-		self.assemblyKeys()
+		self.assembleKeys()
 
 # Application: Class responsible for running the program steps.
 class Application():
@@ -176,7 +176,8 @@ class Template_Writer:
 		with open(outFile, 'w') as target_file:
 			with open(inFile, 'r') as source_file:
 				for line in source_file:
-					newLine = aSet.replace(line)				
+					newLine = line
+					newLine = aSet.replace(newLine)				
 					target_file.write(newLine)	
 	
 # Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
