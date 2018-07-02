@@ -4,7 +4,8 @@
 #
 # Performs tasks related to obtaining CFS data and running WRF on gaea in a single process
 
-import sys, os, datetime, multiprocessing
+import sys, os, datetime
+from multiprocessing.pool import ThreadPool
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
 class AppSettings():
@@ -18,13 +19,17 @@ class AppSettings():
 	def loadSettings(self):
 		with open("control.txt") as f: 
 			for line in f: 
-				tokenized = line.split()
-				if(tokenized[0][0] == '#'):
-					#Comment line, ignore
-					print("Comment line: " + line)
+				if not line.split():
+					#Comment
+					print("Ignored empty line")
 				else:
-					self.settings[tokenized[0]] = tokenized[1]
-					print("Applying setting (" + tokenized[0] +"): " + tokenized[1])
+					tokenized = line.split()
+					if(tokenized[0][0] == '#'):
+						#Comment line, ignore
+						print("Comment line: " + line)
+					else:
+						self.settings[tokenized[0]] = tokenized[1]
+						print("Applying setting (" + tokenized[0] +"): " + tokenized[1])
 		#Test for program critical settings
 		if(not self.settings):
 			print("Program critical variables missing, check for existence of control.txt, abort.")
@@ -41,39 +46,39 @@ class AppSettings():
 			
 	def assembleKeys(self):
 		# Construct the replacement dictionary from the settings
-		replacementKeys["[run_days]"] = str(self.runDays)
-		replacementKeys["[run_hours]"] = str(self.runHours)
-		replacementKeys["[start_date]"] = str(self.startTime.strftime('%y-%m-%d_%H:%M:%S'))
-		replacementKeys["[end_date]"] = str(self.endTime.strftime('%y-%m-%d_%H:%M:%S'))
-		replacementKeys["[start_year]"] = str(self.startTime.year)
-		replacementKeys["[start_month]"] = str(self.startTime.month)
-		replacementKeys["[start_day]"] = str(self.startTime.day)
-		replacementKeys["[start_hour]"] = str(self.startTime.hour)
-		replacementKeys["[end_year]"] = str(self.endTime.year)
-		replacementKeys["[end_month]"] = str(self.endTime.month)
-		replacementKeys["[end_day]"] = str(self.endTime.day)
-		replacementKeys["[end_hour]"] = str(self.endTime.hour)
-		replacementKeys["[geog_path]"] = self.fetch("geogdir")
-		replacementKeys["[table_path]"] = self.fetch("tabledir")
-		replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8]
-		replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
-		replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime").startTime[0:8] + "/output"
-		replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
-		replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
-		replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
-		replacementKeys["[mpi_geogrid_total]"] = str(int(self.fetch("num_geogrid_nodes")) * int(self.fetch("num_geogrid_processors")))
-		replacementKeys["[num_metgrid_nodes]"] = self.fetch("num_metgrid_nodes")
-		replacementKeys["[num_metgrid_processors]"] = self.fetch("num_metgrid_processors")
-		replacementKeys["[metgrid_walltime]"] = self.fetch("metgrid_walltime")
-		replacementKeys["[mpi_metgrid_total]"] = str(int(self.fetch("num_metgrid_nodes")) * int(self.fetch("num_metgrid_processors")))
-		replacementKeys["[num_real_nodes]"] = self.fetch("num_real_nodes")
-		replacementKeys["[num_real_processors]"] = self.fetch("num_real_processors")
-		replacementKeys["[real_walltime]"] = self.fetch("real_walltime")
-		replacementKeys["[mpi_real_total]"] = str(int(self.fetch("num_real_nodes")) * int(self.fetch("num_real_processors")))	
-		replacementKeys["[num_wrf_nodes]"] = self.fetch("num_wrf_nodes")
-		replacementKeys["[num_wrf_processors]"] = self.fetch("num_wrf_processors")
-		replacementKeys["[wrf_walltime]"] = self.fetch("wrf_walltime")
-		replacementKeys["[mpi_wrf_total]"] = str(int(self.fetch("num_wrf_nodes")) * int(self.fetch("num_wrf_processors")))		
+		self.replacementKeys["[run_days]"] = str(self.runDays)
+		self.replacementKeys["[run_hours]"] = str(self.runHours)
+		self.replacementKeys["[start_date]"] = str(self.startTime.strftime('%Y-%m-%d_%H:%M:%S'))
+		self.replacementKeys["[end_date]"] = str(self.endTime.strftime('%Y-%m-%d_%H:%M:%S'))
+		self.replacementKeys["[start_year]"] = str(self.startTime.year)
+		self.replacementKeys["[start_month]"] = str(self.startTime.month)
+		self.replacementKeys["[start_day]"] = str(self.startTime.day)
+		self.replacementKeys["[start_hour]"] = str(self.startTime.hour)
+		self.replacementKeys["[end_year]"] = str(self.endTime.year)
+		self.replacementKeys["[end_month]"] = str(self.endTime.month)
+		self.replacementKeys["[end_day]"] = str(self.endTime.day)
+		self.replacementKeys["[end_hour]"] = str(self.endTime.hour)
+		self.replacementKeys["[geog_path]"] = self.fetch("geogdir")
+		self.replacementKeys["[table_path]"] = self.fetch("tabledir")
+		self.replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8]
+		self.replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
+		self.replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
+		self.replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
+		self.replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
+		self.replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
+		self.replacementKeys["[mpi_geogrid_total]"] = str(int(self.fetch("num_geogrid_nodes")) * int(self.fetch("num_geogrid_processors")))
+		self.replacementKeys["[num_metgrid_nodes]"] = self.fetch("num_metgrid_nodes")
+		self.replacementKeys["[num_metgrid_processors]"] = self.fetch("num_metgrid_processors")
+		self.replacementKeys["[metgrid_walltime]"] = self.fetch("metgrid_walltime")
+		self.replacementKeys["[mpi_metgrid_total]"] = str(int(self.fetch("num_metgrid_nodes")) * int(self.fetch("num_metgrid_processors")))
+		self.replacementKeys["[num_real_nodes]"] = self.fetch("num_real_nodes")
+		self.replacementKeys["[num_real_processors]"] = self.fetch("num_real_processors")
+		self.replacementKeys["[real_walltime]"] = self.fetch("real_walltime")
+		self.replacementKeys["[mpi_real_total]"] = str(int(self.fetch("num_real_nodes")) * int(self.fetch("num_real_processors")))	
+		self.replacementKeys["[num_wrf_nodes]"] = self.fetch("num_wrf_nodes")
+		self.replacementKeys["[num_wrf_processors]"] = self.fetch("num_wrf_processors")
+		self.replacementKeys["[wrf_walltime]"] = self.fetch("wrf_walltime")
+		self.replacementKeys["[mpi_wrf_total]"] = str(int(self.fetch("num_wrf_nodes")) * int(self.fetch("num_wrf_processors")))		
 	 
 	def replace(self, str):
 		if not str:
@@ -108,7 +113,7 @@ class Template_Writer:
 			with open(inFile, 'r') as source_file:
 				for line in source_file:
 					newLine = line
-					newLine = aSet.replace(newLine)				
+					newLine = self.aSet.replace(newLine)				
 					target_file.write(newLine)	
 
 # Wait: Class instance designed to establish a hold condition until execution has been completed
@@ -141,6 +146,88 @@ class Wait:
 		time.sleep(self.timeDelay)
 		return self.hold()
 
+#CFSV2_Fetch: Class responsible for downloading and storing the CSFV2 Data
+class CFSV2_Fetch():
+	
+	startTime = ""
+	cfsDir = ""
+	runDays = 1
+	runHours = 1
+
+	def __init__(self, settings):
+		self.cfsDir = settings.fetch("cfsdir")
+		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
+		self.runDays = settings.fetch("rundays")
+		self.runHours = settings.fetch("runhours")
+		
+		self.fetchFiles()
+		
+	def fetchFiles(self):
+		#os.system("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
+		print("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
+	
+		enddate = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
+		dates = []
+		current = self.startTime
+		while current <= enddate:
+			dates.append(current)
+			current += datetime.timedelta(hours=6)	
+			
+		t = ThreadPool(processes=6)
+		rs = t.map(self.pooled_download, dates)
+		t.close()
+	
+	def pooled_download(self, timeObject):
+		prs_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_pgbf/"
+		flx_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/"
+		
+		strTime = str(self.startTime.strftime('%Y%m%d%H'))
+		
+		pgrb2link = prs_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/pgbf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
+		sgrb2link = flx_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/flxf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
+		pgrb2writ = self.cfsDir + '/' + strTime + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+		sgrb2writ = self.cfsDir + '/' + strTime + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+		
+		#os.system("wget " + pgrb2link + " -O " + pgrb2writ)
+		#os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
+		print("wget " + pgrb2link + " -O " + pgrb2writ)
+		print("wget " + sgrb2link + " -O " + sgrb2writ)
+	
+# Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
+class Preprocessing_Steps:
+	aSet = None
+	startTime = ""
+	cfsDir = ""
+	wrfDir = ""
+
+	def __init__(self, settings):
+		self.aSet = settings
+		self.cfsDir = settings.fetch("cfsdir")
+		self.wrfDir = settings.fetch("wrfdir")
+		self.startTime = settings.fetch("starttime")
+		#os.system("module add wrf-3.9.1")
+		#os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
+		print("module add wrf-3.9.1")
+		print("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
+	
+	def run_geogrid(self):
+		#
+		return None
+	
+	def run_ungrib(self):
+		#Start by symlinking out files from the run folder 
+		#os.system("ln -s " + cfsDir + '/' + strTime[0:8] + "/* " + wrfDir + '/' + strTime[0:8])
+		#ungrib.exe needs to run in the data directory
+		#os.system("cd " + wrfDir + '/' + self.startTime[0:8])
+		print("test")
+		
+	def run_metgrid(self):
+		return None
+
+#class Run_WRF:
+
+#class Postprocessing_Steps:
+
 # Application: Class responsible for running the program steps.
 class Application():
 	# Storage dictionary for program settings
@@ -154,7 +241,7 @@ class Application():
 		print(" 1. Done.")
 		#Step 2: Download CSFV2 Files
 		print(" 2. Downloading CSFV2 Files")
-		downloads = CSFV2_Fetch(settings)
+		downloads = CFSV2_Fetch(settings)
 		print(" 2. Done")
 		#Step 3: Generate run files
 		print(" 3. Generating run files from templates")
@@ -197,79 +284,6 @@ class Application():
 		print("All Steps Completed.")
 		print("Program execution complete.")
 
-#CFSV2_Fetch: Class responsible for downloading and storing the CSFV2 Data
-class CFSV2_Fetch():
-	
-	startTime = ""
-	cfsDir = ""
-	runDays = 1
-	runHours = 1
-
-	def __init__(self, settings):
-		self.cfsDir = settings.fetch("cfsdir")
-		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
-		self.runDays = settings.fetch("rundays")
-		self.runHours = settings.fetch("runhours")
-		
-		self.fetchFiles()
-		
-	def fetchFiles(self):
-		os.system("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
-	
-		enddate = self.startTime + datetime.timedelta(days=self.runDays, hours=self.runHours)
-		dates = []
-		current = self.startTime
-		while current <= enddate:
-			dates.append(current)
-			current += datetime.timedelta(hours=6)	
-	
-		pool = multiprocessing.Pool(processes = 6)
-		r2 = pool.map(self.pooled_download, dates)
-		pool.close()
-		pool.join()
-	
-	def pooled_download(self, timeObject):
-		prs_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_pgbf/"
-		flx_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/"
-		
-		strTime = str(self.startTime)
-		
-		pgrb2link = prs_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' strTime + "/pgbf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
-		sgrb2link = flx_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' strTime + "/flxf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
-		pgrb2writ = self.cfsDir + '/' + strTime[0:8] + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
-		sgrb2writ = self.cfsDir + '/' + strTime[0:8] + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
-		
-		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
-		os.system("wget " + sgrb2link + " -O " + sgrb2writ)		
-	
-# Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
-class Preprocessing_Steps:
-	aSet = None
-	startTime = ""
-	cfsDir = ""
-	wrfDir = ""
-
-	def __init__(self, settings):
-		self.aSet = settings
-		self.cfsDir = settings.fetch("cfsdir")
-		self.wrfDir = settings.fetch("wrfdir")
-		self.startTime = settings.fetch("starttime")
-		os.system("module add wrf-3.9.1")
-		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
-	
-	def run_geogrid(self):
-	
-	def run_ungrib(self):
-		#Start by symlinking out files from the run folder 
-		os.system("ln -s " + cfsDir + '/' + strTime[0:8] + "/* " + wrfDir + '/' + strTime[0:8])
-		#ungrib.exe needs to run in the data directory
-		os.system("cd " + wrfDir + '/' + self.startTime[0:8])
-		
-	def run_metgrid(self):
-
-class Run_WRF:
-
-class Postprocessing_Steps:
-
 # Run the program.
-pInst = Application()
+if __name__ == "__main__":
+	pInst = Application()
