@@ -15,6 +15,7 @@ class AppSettings():
 	runHours = 0
 	settings = {}
 	replacementKeys = {}
+	myUserID = None
 
 	def loadSettings(self):
 		with open("control.txt") as f: 
@@ -88,11 +89,16 @@ class AppSettings():
 		for key, value in self.replacementKeys.items():
 			fStr = fStr.replace(key, value)
 		return fStr
+		
+	def whoami(self):
+		return self.myUserID
      
 	def __init__(self):
 		if(self.loadSettings() == False):
 			sys.exit("Failed to load settings, please check for control.txt")
         
+		self.myUserID = os.popen("whoami").read()
+		
 		self.startTime = datetime.datetime.strptime(self.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = self.fetch("rundays")
 		self.runHours = self.fetch("runhours")
@@ -124,7 +130,7 @@ class Wait:
 	condition = ""
 	timeDelay = ""
 	
-	def __init__(self, waitCommand, condition, abortTime = None, timeDelay=60):
+	def __init__(self, waitCommand, condition, abortTime = None, timeDelay=10):
 		self.waitCommand = waitCommand
 		self.condition = condition
 		self.currentTime = datetime.datetime.utcnow()
@@ -163,8 +169,7 @@ class CFSV2_Fetch():
 		self.fetchFiles()
 		
 	def fetchFiles(self):
-		#os.system("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
-		print("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
+		os.system("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
 	
 		enddate = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
 		dates = []
@@ -188,10 +193,8 @@ class CFSV2_Fetch():
 		pgrb2writ = self.cfsDir + '/' + strTime + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
 		sgrb2writ = self.cfsDir + '/' + strTime + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
 		
-		#os.system("wget " + pgrb2link + " -O " + pgrb2writ)
-		#os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
-		print("wget " + pgrb2link + " -O " + pgrb2writ)
-		print("wget " + sgrb2link + " -O " + sgrb2writ)
+		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
+		os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
 	
 # Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
 class Preprocessing_Steps:
@@ -205,24 +208,45 @@ class Preprocessing_Steps:
 		self.cfsDir = settings.fetch("cfsdir")
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
-		#os.system("module add wrf-3.9.1")
-		#os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
-		print("module add wrf-3.9.1")
-		print("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		#Move the generated files to the run directory		
+		os.system("mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		os.system("mv namelist.wps.3D " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mv namelist.wps.FLX " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mv geogrid.job " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mv metgrid.job " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mv real.job " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mv wrf.job " + self.wrfDir + '/' + self.startTime[0:8])
 	
 	def run_geogrid(self):
 		#
 		return None
 	
-	def run_ungrib(self):
-		#Start by symlinking out files from the run folder 
-		#os.system("ln -s " + cfsDir + '/' + strTime[0:8] + "/* " + wrfDir + '/' + strTime[0:8])
+	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
-		#os.system("cd " + wrfDir + '/' + self.startTime[0:8])
-		print("test")
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("module add wrf-3.9.1")
+		os.system("link_grib.csh " + self.cfsDir + '/' + self.startTime + '/')
+		os.system("cp Vtable.CFSR_press_pgbh06 Vtable")
+		os.system("cp namelist.wps.3D namelist.wps")
+		os.system("ungrib.exe")
+		os.system("cp Vtable.CFSR_sfc_flxf06 Vtable")
+		os.system("cp namelist.wps.FLX namelist.wps")
+		os.system("ungrib.exe")		
 		
 	def run_metgrid(self):
-		return None
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("module add wrf-3.9.1")	
+		os.system("qsub metgrid.job")
+		#Submit a wait condition for the file to appear
+		wait1 = Wait()
+		#Now wait for the output file to be completed
+		
+		#Check for errors
+		
+		#Delete the output file.
+		return True
 
 #class Run_WRF:
 
@@ -257,16 +281,18 @@ class Application():
 		#Step 4: Run the preprocessing steps
 		print(" 4. Run WRF Pre-Processing Steps")
 		preprocessing = Preprocessing_Steps(settings)
-		print(" 4.a Checking for geogrid flag...")
+		print("  4.a Checking for geogrid flag...")
 		if(settings.fetch("run_geogrid") == '1'):
-			print(" 4.a Geogrid flag is set, preparing geogrid job.")
-			
-			print(" 4.a Done")
+			print("  4.a Geogrid flag is set, preparing geogrid job.")
+			preprocessing.run_geogrid()
+			print("  4.a Done")
 		else:
-			print(" 4.a Geogrid flag is not set, skipping step")
-		print(" 4.b. Running pre-processing executables")
-		
-		print(" 4.b. Done")
+			print("  4.a Geogrid flag is not set, skipping step")
+		print("  4.b. Running pre-processing executables")
+		preprocessing.run_ungrib()
+		if(preprocessing.run_metgrid() == False):
+			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
+		print("  4.b. Done")
 		print(" 4. Done")
 		#Step 5: Run WRF
 		print(" 5. Running WRF")
