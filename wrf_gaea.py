@@ -4,7 +4,10 @@
 #
 # Performs tasks related to obtaining CFS data and running WRF on gaea in a single process
 
-import sys, os, datetime
+import sys
+import os
+import os.path
+import datetime
 from multiprocessing.pool import ThreadPool
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
@@ -20,6 +23,7 @@ class AppSettings():
 	def loadSettings(self):
 		with open("control.txt") as f: 
 			for line in f: 
+				#To-Do: This can be simplified to a single if block, but for the time being, I'm going to leave it as is
 				if not line.split():
 					#Comment
 					print("Ignored empty line")
@@ -169,7 +173,9 @@ class CFSV2_Fetch():
 		self.fetchFiles()
 		
 	def fetchFiles(self):
-		os.system("mkdir " + self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H')))
+		dirPath = self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H'))
+		if not os.path.isdir(dirPath):
+			os.system("mkdir " + dirPath)
 	
 		enddate = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
 		dates = []
@@ -192,12 +198,13 @@ class CFSV2_Fetch():
 		sgrb2link = flx_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/flxf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
 		pgrb2writ = self.cfsDir + '/' + strTime + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
 		sgrb2writ = self.cfsDir + '/' + strTime + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
-		
-		os.system("wget " + pgrb2link + " -O " + pgrb2writ)
-		os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
+		if not os.path.isfile(pgrb2writ):
+			os.system("wget " + pgrb2link + " -O " + pgrb2writ)
+		if not os.path.isfile(sgrb2writ):
+			os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
 	
-# Preprocessing_Steps: Class responsible for running the steps prior to the WRF model
-class Preprocessing_Steps:
+# JobSteps: Class responsible for handling the steps that involve job submission and checkup
+class JobSteps:
 	aSet = None
 	startTime = ""
 	cfsDir = ""
@@ -247,21 +254,33 @@ class Preprocessing_Steps:
 		
 		#Delete the output file.
 		return True
-
-#class Run_WRF:
+		
+	def run_real(self):
+		return None
+		
+	def run_wrf(self):
+		return None
 
 #class Postprocessing_Steps:
 
+class PostRunCleanup():
+	sObj = None
+	
+	def __init__(self, settings):
+		self.sObj = settings
+		
+	def performClean(cleanAll = True, cleanOutFiles = True, cleanErrorFiles = True):
+		return None
+
 # Application: Class responsible for running the program steps.
-class Application():
-	# Storage dictionary for program settings
-	settings = None
-			
+class Application():			
 	def __init__(self):
 		print("Initializing WRF Auto-Run Program")
 		#Step 1: Load program settings
 		print(" 1. Loading program settings")
 		settings = AppSettings()
+		prc = PostRunCleanup(settings)
+		prc.performClean()
 		print(" 1. Done.")
 		#Step 2: Download CSFV2 Files
 		print(" 2. Downloading CSFV2 Files")
@@ -278,34 +297,40 @@ class Application():
 		tWrite.generateTemplatedFile("real.job.template", "real.job")
 		tWrite.generateTemplatedFile("wrf.job.template", "wrf.job")
 		print(" 3. Done")
-		#Step 4: Run the preprocessing steps
-		print(" 4. Run WRF Pre-Processing Steps")
-		preprocessing = Preprocessing_Steps(settings)
+		#Step 4: Run the WRF steps
+		print(" 4. Run WRF Steps")
+		jobs = JobSteps(settings)
 		print("  4.a Checking for geogrid flag...")
 		if(settings.fetch("run_geogrid") == '1'):
 			print("  4.a Geogrid flag is set, preparing geogrid job.")
-			preprocessing.run_geogrid()
-			print("  4.a Done")
+			jobs.run_geogrid()
+			print("  4.a Geogrid job Done")
 		else:
 			print("  4.a Geogrid flag is not set, skipping step")
+		print("  4.a. Done")
 		print("  4.b. Running pre-processing executables")
-		preprocessing.run_ungrib()
-		if(preprocessing.run_metgrid() == False):
+		jobs.run_ungrib()
+		if(jobs.run_metgrid() == False):
+			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False)
 			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
 		print("  4.b. Done")
+		print("  4.c. Running WRF executables")
+		if(jobs.run_real() == False):
+			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False)
+			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")		
+		if(jobs.run_wrf() == False):
+			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False)
+			sys.exit("   4.c. ERROR: wrf.exe process failed to complete, check error file.")	
+		print("  4.c. Done")
 		print(" 4. Done")
-		#Step 5: Run WRF
-		print(" 5. Running WRF")
+		#Step 5: Run postprocessing steps
+		print(" 5. Running post-processing")
 		
 		print(" 5. Done")
-		#Step 6: Run postprocessing steps
-		print(" 6. Running post-processing")
-		
-		print(" 6. Done")
-		#Step 7: Cleanup
-		print(" 7. Cleaning Temporary Files")
-		
-		print(" 7. Done")		
+		#Step 6: Cleanup
+		print(" 6. Cleaning Temporary Files")
+		prc.performClean()
+		print(" 6. Done")		
 		#Done.
 		print("All Steps Completed.")
 		print("Program execution complete.")
