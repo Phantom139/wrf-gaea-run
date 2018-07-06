@@ -269,7 +269,39 @@ class PostRunCleanup():
 	def __init__(self, settings):
 		self.sObj = settings
 		
-	def performClean(cleanAll = True, cleanOutFiles = True, cleanErrorFiles = True):
+	def performClean(cleanAll = True, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = True):
+		sTime = self.sObj.fetch("starttime")
+		wrfDir = self.sObj.fetch("wrfdir") + '/' + sTime[0:8]
+		outDir = wrfDir + "/output"
+		if(cleanAll == True):
+			cleanOutFiles = True
+			cleanErrorFiles = True
+			cleanInFiles = True
+			cleanWRFOut = True
+		if(cleanOutFiles == True):
+			os.system("rm " + wrfDir + "/geogrid.log.*")
+			os.system("rm " + outDir + "/metgrid.log.*")
+			os.system("rm " + outDir + "/ungrib.log*")
+			os.system("rm " + outDir + "/rsl.out.*")
+			os.system("rm " + wrfDir + "/GEOGRID.o*")
+			os.system("rm " + wrfDir + "/METGRID.o*")
+			os.system("rm " + wrfDir + "/UNGRIB.o*") #This shouldn't be needed, but in the event we use a job for ungrib.
+			os.system("rm " + outDir + "/REAL.o*")
+			os.system("rm " + outDir + "/WRF.o*")
+		if(cleanErrorFiles == True):
+			os.system("rm " + outDir + "/rsl.error.*")
+			os.system("rm " + wrfDir + "/GEOGRID.e*")
+			os.system("rm " + wrfDir + "/METGRID.e*")
+			os.system("rm " + wrfDir + "/UNGRIB.e*") #This shouldn't be needed, but in the event we use a job for ungrib.
+			os.system("rm " + outDir + "/REAL.e*")
+			os.system("rm " + outDir + "/WRF.e*")	
+		if(cleanInFiles == True):
+			os.system("rm " + outDir + "/FILE:*")
+			os.system("rm " + outDir + "/met_em*")
+			os.system("rm " + outDir + "/wrfinput*")
+			os.system("rm " + outDir + "/wrfbdy*")
+		if(cleanWRFOut == True):
+			os.system("rm " + outDir + "/wrfout*")
 		return None
 
 # Application: Class responsible for running the program steps.
@@ -311,15 +343,15 @@ class Application():
 		print("  4.b. Running pre-processing executables")
 		jobs.run_ungrib()
 		if(jobs.run_metgrid() == False):
-			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False)
+			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
 		print("  4.b. Done")
 		print("  4.c. Running WRF executables")
 		if(jobs.run_real() == False):
-			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False)
+			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")		
 		if(jobs.run_wrf() == False):
-			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False)
+			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.c. ERROR: wrf.exe process failed to complete, check error file.")	
 		print("  4.c. Done")
 		print(" 4. Done")
@@ -329,7 +361,7 @@ class Application():
 		print(" 5. Done")
 		#Step 6: Cleanup
 		print(" 6. Cleaning Temporary Files")
-		prc.performClean()
+		prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False)
 		print(" 6. Done")		
 		#Done.
 		print("All Steps Completed.")
