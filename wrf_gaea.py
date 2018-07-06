@@ -247,12 +247,12 @@ class JobSteps:
 		os.system("module add wrf-3.9.1")	
 		os.system("qsub metgrid.job")
 		#Submit a wait condition for the file to appear
-		wait1 = Wait()
+		wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		#Now wait for the output file to be completed
-		
+		wait2 = Wait("tail -n 1 METGRID.o*", "", timeDelay = 30) #TODO: Need a sample file.
 		#Check for errors
-		
-		#Delete the output file.
+		if(os.popen("du -h METGRID.e*").read().split()[0] != "0"):
+			return False
 		return True
 		
 	def run_real(self):
