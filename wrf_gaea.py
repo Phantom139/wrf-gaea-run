@@ -143,7 +143,7 @@ class Wait:
 		if(abortTime != None):
 			self.abortTime = self.currentTime + datetime.timedelta(seconds=int(abortTime))
 	
-	def hold():
+	def hold(self):
 		cTime = datetime.datetime.utcnow()
 		if(cTime > self.abortTime):
 			print("Wait(): Abort time elapsed, breaking wait")
