@@ -301,7 +301,7 @@ class PostRunCleanup():
 	def __init__(self, settings):
 		self.sObj = settings
 		
-	def performClean(cleanAll = True, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = True):
+	def performClean(self, cleanAll = True, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = True):
 		sTime = self.sObj.fetch("starttime")
 		wrfDir = self.sObj.fetch("wrfdir") + '/' + sTime[0:8]
 		outDir = wrfDir + "/output"
