@@ -142,8 +142,6 @@ class Wait:
 		self.timeDelay = timeDelay
 		if(abortTime != None):
 			self.abortTime = self.currentTime + datetime.timedelta(seconds=int(abortTime))
-		
-		self.hold()
 	
 	def hold():
 		cTime = datetime.datetime.utcnow()
@@ -248,18 +246,52 @@ class JobSteps:
 		os.system("qsub metgrid.job")
 		#Submit a wait condition for the file to appear
 		wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
+		wait1.hold()
 		#Now wait for the output file to be completed
-		wait2 = Wait("tail -n 1 METGRID.o*", "", timeDelay = 30) #TODO: Need a sample file.
+		wait2 = Wait("tail -n 1 METGRID.o*", "*** Successful completion of program metgrid.exe ***", abortTime = 1, timeDelay = 30)
+		if(wait2.hold() == False):
+			return False
 		#Check for errors
 		if(os.popen("du -h METGRID.e*").read().split()[0] != "0"):
 			return False
 		return True
 		
 	def run_real(self):
-		return None
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("module add wrf-3.9.1")	
+		os.system("qsub real.job")
+		#Submit a wait condition for the file to appear
+		wait1 = Wait("(ls REAL.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
+		wait1.hold()
+		#Now wait for the output file to be completed
+		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 1, timeDelay = 30)
+		if(wait2.hold() == False):
+			return False
+		#Check for errors
+		if(os.popen("du -h REAL.e*").read().split()[0] != "0"):
+			return False			
+		#Validate the presense of the two files.
+		file1 = os.popen("(ls wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+		file2 = os.popen("(ls wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+		if("yes" in file1 and "yes" in file2):
+			return True
+		return False
 		
 	def run_wrf(self):
-		return None
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("module add wrf-3.9.1")	
+		os.system("qsub wrf.job")
+		#Submit a wait condition for the file to appear
+		wait1 = Wait("(ls WRF.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
+		wait1.hold()
+		#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
+		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 7, timeDelay = 30)
+		if(wait2.hold() == False):
+			return False
+		#Check for errors
+		if(os.popen("du -h WRF.e*").read().split()[0] != "0"):
+			return False			
+		return True
 
 #class Postprocessing_Steps:
 
@@ -343,15 +375,15 @@ class Application():
 		print("  4.b. Running pre-processing executables")
 		jobs.run_ungrib()
 		if(jobs.run_metgrid() == False):
-			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
+			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
 		print("  4.b. Done")
 		print("  4.c. Running WRF executables")
 		if(jobs.run_real() == False):
-			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
+			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")		
 		if(jobs.run_wrf() == False):
-			prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
+			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.c. ERROR: wrf.exe process failed to complete, check error file.")	
 		print("  4.c. Done")
 		print(" 4. Done")
@@ -361,7 +393,7 @@ class Application():
 		print(" 5. Done")
 		#Step 6: Cleanup
 		print(" 6. Cleaning Temporary Files")
-		prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False)
+		#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False)
 		print(" 6. Done")		
 		#Done.
 		print("All Steps Completed.")
