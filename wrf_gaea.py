@@ -260,6 +260,7 @@ class JobSteps:
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("module add wrf-3.9.1")	
 		os.system("qsub real.job")
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		#Submit a wait condition for the file to appear
 		wait1 = Wait("(ls REAL.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		wait1.hold()
@@ -284,6 +285,7 @@ class JobSteps:
 		os.system("rm output/rs.error.*")
 		os.system("module add wrf-3.9.1")	
 		os.system("qsub wrf.job")
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		#Submit a wait condition for the file to appear
 		wait1 = Wait("(ls WRF.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		wait1.hold()
