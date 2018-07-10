@@ -271,8 +271,8 @@ class JobSteps:
 		if(os.popen("du -h REAL.e*").read().split()[0] != "0"):
 			return False			
 		#Validate the presense of the two files.
-		file1 = os.popen("(ls wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
-		file2 = os.popen("(ls wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+		file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+		file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
 		if("yes" in file1 and "yes" in file2):
 			return True
 		return False
