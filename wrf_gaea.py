@@ -264,7 +264,7 @@ class JobSteps:
 		wait1 = Wait("(ls REAL.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		wait1.hold()
 		#Now wait for the output file to be completed
-		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 86400, timeDelay = 30)
+		wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 86400, timeDelay = 30)
 		if(wait2.hold() == False):
 			return False
 		#Check for errors
@@ -279,13 +279,16 @@ class JobSteps:
 		
 	def run_wrf(self):
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
+		# Remove the old log files as these are no longer needed
+		os.system("rm output/rsl.out.*")
+		os.system("rm output/rs.error.*")
 		os.system("module add wrf-3.9.1")	
 		os.system("qsub wrf.job")
 		#Submit a wait condition for the file to appear
 		wait1 = Wait("(ls WRF.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		wait1.hold()
 		#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
-		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 604800, timeDelay = 30)
+		wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 604800, timeDelay = 30)
 		if(wait2.hold() == False):
 			return False
 		#Check for errors
