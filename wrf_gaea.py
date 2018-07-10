@@ -248,7 +248,7 @@ class JobSteps:
 		wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		wait1.hold()
 		#Now wait for the output file to be completed
-		wait2 = Wait("tail -n 1 METGRID.o*", "*** Successful completion of program metgrid.exe ***", abortTime = 1, timeDelay = 30)
+		wait2 = Wait("tail -n 1 METGRID.o*", "*** Successful completion of program metgrid.exe ***", abortTime = 86400, timeDelay = 30)
 		if(wait2.hold() == False):
 			return False
 		#Check for errors
@@ -264,7 +264,7 @@ class JobSteps:
 		wait1 = Wait("(ls REAL.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		wait1.hold()
 		#Now wait for the output file to be completed
-		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 1, timeDelay = 30)
+		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 86400, timeDelay = 30)
 		if(wait2.hold() == False):
 			return False
 		#Check for errors
@@ -285,7 +285,7 @@ class JobSteps:
 		wait1 = Wait("(ls WRF.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
 		wait1.hold()
 		#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
-		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 7, timeDelay = 30)
+		wait2 = Wait("tail -n 1 rsl.out.*", "SUCCESS", abortTime = 604800, timeDelay = 30)
 		if(wait2.hold() == False):
 			return False
 		#Check for errors
