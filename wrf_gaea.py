@@ -68,7 +68,7 @@ class AppSettings():
 		self.replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8]
 		self.replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
 		self.replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
-		self.replacementKeys["[data_dir]"] = self.fetch("cfsdir") + '/' + self.fetch("startTime")
+		self.replacementKeys["[data_dir]"] = self.fetch("cfsdir") + '/' + self.fetch("starttime")
 		self.replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
 		self.replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
 		self.replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
