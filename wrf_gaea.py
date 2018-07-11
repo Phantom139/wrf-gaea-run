@@ -68,6 +68,7 @@ class AppSettings():
 		self.replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8]
 		self.replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
 		self.replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
+		self.replacementKeys["[data_dir]"] = self.fetch("cfsdir") + '/' + self.fetch("startTime")
 		self.replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
 		self.replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
 		self.replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
@@ -231,18 +232,10 @@ class JobSteps:
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("module add wrf/wrf-3.9.1")
-		os.system("link_grib.csh " + self.cfsDir + '/' + self.startTime + '/')
-		os.system("cp Vtable.CFSR_press_pgbh06 Vtable")
-		os.system("cp namelist.wps.3D namelist.wps")
-		os.system("ungrib.exe")
-		os.system("cp Vtable.CFSR_sfc_flxf06 Vtable")
-		os.system("cp namelist.wps.FLX namelist.wps")
-		os.system("ungrib.exe")		
+		os.system("ungrib.csh")		
 		
 	def run_metgrid(self):
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("module add wrf/wrf-3.9.1")	
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])	
 		os.system("qsub metgrid.job")
 		#Submit a wait condition for the file to appear
 		wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
@@ -257,8 +250,7 @@ class JobSteps:
 		return True
 		
 	def run_real(self):
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("module add wrf/wrf-3.9.1")	
+		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])	
 		os.system("qsub real.job")
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		#Submit a wait condition for the file to appear
@@ -282,8 +274,7 @@ class JobSteps:
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		# Remove the old log files as these are no longer needed
 		os.system("rm output/rsl.out.*")
-		os.system("rm output/rs.error.*")
-		os.system("module add wrf/wrf-3.9.1")	
+		os.system("rm output/rsl.error.*")	
 		os.system("qsub wrf.job")
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		#Submit a wait condition for the file to appear
@@ -365,6 +356,7 @@ class Application():
 		tWrite.generateTemplatedFile("metgrid.job.template", "metgrid.job")
 		tWrite.generateTemplatedFile("real.job.template", "real.job")
 		tWrite.generateTemplatedFile("wrf.job.template", "wrf.job")
+		tWrite.generateTemplatedFile("ungrib.csh.template", "ungrib.csh")
 		print(" 3. Done")
 		#Step 4: Run the WRF steps
 		print(" 4. Run WRF Steps")

@@ -1,0 +1,10 @@
+#!/bin/bash
+cd [run_dir]
+module add wrf/wrf-3.9.1
+link_grib.csh [data_dir]/
+cp Vtable.CFSR_press_pgbh06 Vtable
+cp namelist.wps.3D namelist.wps
+ungrib.exe
+cp Vtable.CFSR_sfc_flxf06 Vtable
+cp namelist.wps.FLX namelist.wps
+ungrib.exe
