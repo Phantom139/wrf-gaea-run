@@ -231,7 +231,7 @@ class JobSteps:
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("module add wrf-3.9.1")
+		os.system("module add wrf/wrf-3.9.1")
 		os.system("link_grib.csh " + self.cfsDir + '/' + self.startTime + '/')
 		os.system("cp Vtable.CFSR_press_pgbh06 Vtable")
 		os.system("cp namelist.wps.3D namelist.wps")
@@ -242,7 +242,7 @@ class JobSteps:
 		
 	def run_metgrid(self):
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("module add wrf-3.9.1")	
+		os.system("module add wrf/wrf-3.9.1")	
 		os.system("qsub metgrid.job")
 		#Submit a wait condition for the file to appear
 		wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
@@ -258,7 +258,7 @@ class JobSteps:
 		
 	def run_real(self):
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("module add wrf-3.9.1")	
+		os.system("module add wrf/wrf-3.9.1")	
 		os.system("qsub real.job")
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		#Submit a wait condition for the file to appear
@@ -283,7 +283,7 @@ class JobSteps:
 		# Remove the old log files as these are no longer needed
 		os.system("rm output/rsl.out.*")
 		os.system("rm output/rs.error.*")
-		os.system("module add wrf-3.9.1")	
+		os.system("module add wrf/wrf-3.9.1")	
 		os.system("qsub wrf.job")
 		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
 		#Submit a wait condition for the file to appear
