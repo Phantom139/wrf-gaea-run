@@ -230,6 +230,9 @@ class JobSteps:
 		self.startTime = settings.fetch("starttime")
 		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		#Copy important files to the directory
+		os.system("cp Vtable.CFSR_press_pgbh06 " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("cp Vtable.CFSR_sfc_flxf06 " + self.wrfDir + '/' + self.startTime[0:8])
 		#Move the generated files to the run directory		
 		os.system("mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		os.system("mv namelist.wps.3D " + self.wrfDir + '/' + self.startTime[0:8])
@@ -239,6 +242,7 @@ class JobSteps:
 		os.system("mv real.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv wrf.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv ungrib.csh " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("chmod +x " + self.wrfDir + '/' + self.startTime[0:8] + "/ungrib.csh")
 	
 	def run_geogrid(self):
 		#
@@ -247,7 +251,7 @@ class JobSteps:
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
-			os.system("ungrib.csh")		
+			os.system("./ungrib.csh")		
 		
 	def run_metgrid(self):
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
