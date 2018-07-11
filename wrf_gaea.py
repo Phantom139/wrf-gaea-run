@@ -8,6 +8,7 @@ import sys
 import os
 import os.path
 import datetime
+import time
 from multiprocessing.pool import ThreadPool
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
@@ -155,6 +156,19 @@ class Wait:
 		time.sleep(self.timeDelay)
 		return self.hold()
 
+#CD: Current Directory management, see https://stackoverflow.com/a/13197763/7537290 for implementation. This is used to maintain the overall OS CWD while allowing embedded changes.
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+		
 #CFSV2_Fetch: Class responsible for downloading and storing the CSFV2 Data
 class CFSV2_Fetch():
 	
@@ -232,63 +246,67 @@ class JobSteps:
 	
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("ungrib.csh")		
+		with cd(self.wrfDir + '/' + self.startTime[0:8]):
+			os.system("ungrib.csh")		
 		
 	def run_metgrid(self):
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])	
-		os.system("qsub metgrid.job")
-		#Submit a wait condition for the file to appear
-		wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
-		wait1.hold()
-		#Now wait for the output file to be completed
-		wait2 = Wait("tail -n 1 METGRID.o*", "*** Successful completion of program metgrid.exe ***", abortTime = 86400, timeDelay = 30)
-		if(wait2.hold() == False):
-			return False
-		#Check for errors
-		if(os.popen("du -h METGRID.e*").read().split()[0] != "0"):
-			return False
-		return True
-		
-	def run_real(self):
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])	
-		os.system("qsub real.job")
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		#Submit a wait condition for the file to appear
-		wait1 = Wait("(ls REAL.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
-		wait1.hold()
-		#Now wait for the output file to be completed
-		wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 86400, timeDelay = 30)
-		if(wait2.hold() == False):
-			return False
-		#Check for errors
-		if(os.popen("du -h REAL.e*").read().split()[0] != "0"):
-			return False			
-		#Validate the presense of the two files.
-		file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
-		file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
-		if("yes" in file1 and "yes" in file2):
+		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
+			os.system("qsub metgrid.job")
+			#Submit a wait condition for the file to appear
+			wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
+			wait1.hold()
+			#Now wait for the output file to be completed
+			wait2 = Wait("tail -n 1 METGRID.o*", "*** Successful completion of program metgrid.exe ***", abortTime = 86400, timeDelay = 30)
+			if(wait2.hold() == False):
+				return False
+			#Check for errors
+			if(os.popen("du -h METGRID.e*").read().split()[0] != "0"):
+				return False
 			return True
+		print("run_metgrid(): Failed to enter run directory")
 		return False
 		
-	def run_wrf(self):
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		# Remove the old log files as these are no longer needed
-		os.system("rm output/rsl.out.*")
-		os.system("rm output/rsl.error.*")	
-		os.system("qsub wrf.job")
-		os.system("cd " + self.wrfDir + '/' + self.startTime[0:8])
-		#Submit a wait condition for the file to appear
-		wait1 = Wait("(ls WRF.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
-		wait1.hold()
-		#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
-		wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 604800, timeDelay = 30)
-		if(wait2.hold() == False):
+	def run_real(self):
+		with cd(self.wrfDir + '/' + self.startTime[0:8]):
+			os.system("qsub real.job")
+			#Submit a wait condition for the file to appear
+			wait1 = Wait("(ls REAL.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
+			wait1.hold()
+			#Now wait for the output file to be completed
+			wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 86400, timeDelay = 30)
+			if(wait2.hold() == False):
+				return False
+			#Check for errors
+			if(os.popen("du -h REAL.e*").read().split()[0] != "0"):
+				return False			
+			#Validate the presense of the two files.
+			file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+			file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+			if("yes" in file1 and "yes" in file2):
+				return True
 			return False
-		#Check for errors
-		if(os.popen("du -h WRF.e*").read().split()[0] != "0"):
-			return False			
-		return True
+		print("run_real(): Failed to enter run directory")
+		return False			
+		
+	def run_wrf(self):
+		with cd(self.wrfDir + '/' + self.startTime[0:8]):
+			# Remove the old log files as these are no longer needed
+			os.system("rm output/rsl.out.*")
+			os.system("rm output/rsl.error.*")	
+			os.system("qsub wrf.job")
+			#Submit a wait condition for the file to appear
+			wait1 = Wait("(ls WRF.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
+			wait1.hold()
+			#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
+			wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 604800, timeDelay = 30)
+			if(wait2.hold() == False):
+				return False
+			#Check for errors
+			if(os.popen("du -h WRF.e*").read().split()[0] != "0"):
+				return False			
+			return True
+		print("run_wrf(): Failed to enter run directory")
+		return False			
 
 #class Postprocessing_Steps:
 
