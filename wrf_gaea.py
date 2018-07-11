@@ -253,6 +253,8 @@ class JobSteps:
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
 			os.system("./ungrib.csh")		
 		
+	### BIG TO-DO: Need to update the Wait class to be able to test multiple conditions at once with return code for each if triggered
+	###  The likely best bet choice here is some kind of a list which stores a dictionary {command:Blah,condition:Blah,return:0} for instance
 	def run_metgrid(self):
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
 			os.system("qsub metgrid.job")
@@ -347,6 +349,9 @@ class PostRunCleanup():
 			os.system("rm " + outDir + "/REAL.e*")
 			os.system("rm " + outDir + "/WRF.e*")	
 		if(cleanInFiles == True):
+			os.system("rm " + wrfDir + "/GRIBFILE.*")
+			os.system("rm " + wrfDir + "/3D:*")
+			os.system("rm " + wrfDir + "/FLX:*")
 			os.system("rm " + outDir + "/FILE:*")
 			os.system("rm " + outDir + "/met_em*")
 			os.system("rm " + outDir + "/wrfinput*")
