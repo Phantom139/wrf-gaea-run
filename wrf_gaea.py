@@ -150,7 +150,7 @@ class Wait:
 			print("Wait(): Abort time elapsed, breaking wait")
 			return False
 		cResult = os.popen(self.waitCommand).read()
-		if(condition in cResult):
+		if(self.condition in cResult):
 			return True
 		time.sleep(self.timeDelay)
 		return self.hold()
@@ -224,6 +224,7 @@ class JobSteps:
 		os.system("mv metgrid.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv real.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv wrf.job " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mv ungrib.csh " + self.wrfDir + '/' + self.startTime[0:8])
 	
 	def run_geogrid(self):
 		#
