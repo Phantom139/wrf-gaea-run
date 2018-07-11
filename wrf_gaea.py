@@ -128,17 +128,19 @@ class Template_Writer:
 					newLine = self.aSet.replace(newLine)				
 					target_file.write(newLine)	
 
+#TimeExpiredException: Custom exception that is thrown when the Wait() command expires
+class TimeExpiredException(Exception):
+	pass
+					
 # Wait: Class instance designed to establish a hold condition until execution has been completed
 class Wait:
-	waitCommand = ""
+	holds = []
 	currentTime = ""
 	abortTime = ""
-	condition = ""
 	timeDelay = ""
 	
-	def __init__(self, waitCommand, condition, abortTime = None, timeDelay=10):
-		self.waitCommand = waitCommand
-		self.condition = condition
+	def __init__(self, holdList, abortTime = None, timeDelay=10):
+		self.holds = holdList
 		self.currentTime = datetime.datetime.utcnow()
 		self.abortTime = self.currentTime + datetime.timedelta(days=int(999))
 		self.timeDelay = timeDelay
@@ -148,11 +150,29 @@ class Wait:
 	def hold(self):
 		cTime = datetime.datetime.utcnow()
 		if(cTime > self.abortTime):
-			print("Wait(): Abort time elapsed, breaking wait")
-			return False
-		cResult = os.popen(self.waitCommand).read()
-		if(self.condition in cResult):
-			return True
+			raise TimeExpiredException
+			return None
+		
+		for indHold in self.holds:
+			command = indHold["waitCommand"]
+			retCode = indHold["returnCode"]
+			cResult = os.popen(command).read()
+			if 'splitFirst' in indHold:
+				cResult = cResult.split()[0]
+			if 'contains' in indHold:
+				contains = indHold["contains"]
+				if(contains in cResult):
+					return retCode
+			elif 'isValue' in indHold:
+				isValue = indHold["isValue"]
+				if(cResult == isValue):
+					return retCode
+			elif 'isNotValue' in indHold:
+				isValue = indHold["isNotValue"]
+				if(cResult != isValue):
+					return retCode
+			else:
+				return cResult	
 		time.sleep(self.timeDelay)
 		return self.hold()
 
@@ -259,16 +279,24 @@ class JobSteps:
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
 			os.system("qsub metgrid.job")
 			#Submit a wait condition for the file to appear
-			wait1 = Wait("(ls METGRID.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
-			wait1.hold()
+			try:
+				firstWait = [{"waitCommand": "(ls METGRID.o* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				wait1 = Wait(firstWait, timeDelay = 25)
+				wait1.hold()
+			except TimeExpiredException:
+				sys.exit("metgrid.exe job not completed, abort.")
 			#Now wait for the output file to be completed
-			wait2 = Wait("tail -n 1 METGRID.o*", "*** Successful completion of program metgrid.exe ***", abortTime = 86400, timeDelay = 30)
-			if(wait2.hold() == False):
-				return False
-			#Check for errors
-			if(os.popen("du -h METGRID.e*").read().split()[0] != "0"):
-				return False
-			return True
+			try:
+				secondWait = [{"waitCommand": "tail -n 1 METGRID.o*", "contains": "*** Successful completion of program metgrid.exe ***", "retCode": 1},
+							  {"waitCommand": "du -h METGRID.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}]
+				wait2 = Wait(secondWait, timeDelay = 25)
+				wRC = wait2.hold()
+				if wRC == 1:
+					return True
+				elif wRC == 2:
+					return False
+			except TimeExpiredException:
+				sys.exit("metgrid.exe job not completed, abort.")
 		print("run_metgrid(): Failed to enter run directory")
 		return False
 		
@@ -276,21 +304,32 @@ class JobSteps:
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
 			os.system("qsub real.job")
 			#Submit a wait condition for the file to appear
-			wait1 = Wait("(ls REAL.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
-			wait1.hold()
+			try:
+				firstWait = [{"waitCommand": "(ls REAL.o* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				wait1 = Wait(firstWait, timeDelay = 25)
+				wait1.hold()			
+			except TimeExpiredException:
+				sys.exit("real.exe job not completed, abort.")
 			#Now wait for the output file to be completed
-			wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 86400, timeDelay = 30)
-			if(wait2.hold() == False):
-				return False
-			#Check for errors
-			if(os.popen("du -h REAL.e*").read().split()[0] != "0"):
-				return False			
-			#Validate the presense of the two files.
-			file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
-			file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
-			if("yes" in file1 and "yes" in file2):
-				return True
-			return False
+			try:
+				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
+							  {"waitCommand": "du -h REAL.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
+				wait2 = Wait(secondWait, timeDelay = 60)
+				wRC = wait2.hold()
+				if wRC == 2:
+					return False
+				else:
+					#Validate the presense of the two files.
+					file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+					file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+					if("yes" in file1 and "yes" in file2):
+						return True
+					return False					
+			except TimeExpiredException:
+				sys.exit("real.exe job not completed, abort.")		
 		print("run_real(): Failed to enter run directory")
 		return False			
 		
@@ -301,16 +340,29 @@ class JobSteps:
 			os.system("rm output/rsl.error.*")	
 			os.system("qsub wrf.job")
 			#Submit a wait condition for the file to appear
-			wait1 = Wait("(ls WRF.o* && echo \"yes\") || echo \"no\"", "yes", timeDelay = 25)
-			wait1.hold()
+			try:
+				firstWait = [{"waitCommand": "(ls WRF.o* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				wait1 = Wait(firstWait, timeDelay = 25)
+				wait1.hold()			
+			except TimeExpiredException:
+				sys.exit("wrf.exe job not completed, abort.")
 			#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
-			wait2 = Wait("tail -n 1 output/rsl.out.*", "SUCCESS", abortTime = 604800, timeDelay = 30)
-			if(wait2.hold() == False):
-				return False
-			#Check for errors
-			if(os.popen("du -h WRF.e*").read().split()[0] != "0"):
-				return False			
-			return True
+			#Now wait for the output file to be completed
+			try:
+				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
+							  {"waitCommand": "du -h WRF.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
+				# Note: I have the script checking the files once every three minutes so we don't stack five calls rapidly, this can be modified later if needed.
+				wait2 = Wait(secondWait, timeDelay = 180)
+				wRC = wait2.hold()
+				if wRC == 2:
+					return False
+				else:
+					return True				
+			except TimeExpiredException:
+				sys.exit("wrf.exe job not completed, abort.")				
 		print("run_wrf(): Failed to enter run directory")
 		return False			
 
