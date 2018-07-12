@@ -155,7 +155,7 @@ class Wait:
 		
 		for indHold in self.holds:
 			command = indHold["waitCommand"]
-			retCode = indHold["returnCode"]
+			retCode = indHold["retCode"]
 			cResult = os.popen(command).read()
 			if 'splitFirst' in indHold:
 				cResult = cResult.split()[0]
@@ -253,6 +253,7 @@ class JobSteps:
 		#Copy important files to the directory
 		os.system("cp Vtable.CFSR_press_pgbh06 " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("cp Vtable.CFSR_sfc_flxf06 " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("cp geo_em.d01.nc " + self.wrfDir + '/' + self.startTime[0:8] + "/output") #Note: For now, need to add a test for the geogrid flag later.
 		#Move the generated files to the run directory		
 		os.system("mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		os.system("mv namelist.wps.3D " + self.wrfDir + '/' + self.startTime[0:8])
