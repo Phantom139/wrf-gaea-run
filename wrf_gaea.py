@@ -290,9 +290,9 @@ class JobSteps:
 			try:
 				secondWait = [{"waitCommand": "tail -n 3 METGRID.o*", "contains": "Successful completion of metgrid", "retCode": 1},
 #								{"waitCommand": "du -h METGRID.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #7/15: WARN messages that don't affect results can trigger this condition
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
+							  {"waitCommand": "tail -n 3 METGRID.e*", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 3 METGRID.e*", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 3 METGRID.e*", "contains": "error", "retCode": 2},]
 				wait2 = Wait(secondWait, timeDelay = 25)
 				wRC = wait2.hold()
 				if wRC == 1:
@@ -318,9 +318,9 @@ class JobSteps:
 			try:
 				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
 #								{"waitCommand": "du -h REAL.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #See Above
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "error", "retCode": 2},]
 				wait2 = Wait(secondWait, timeDelay = 60)
 				wRC = wait2.hold()
 				if wRC == 2:
@@ -355,9 +355,9 @@ class JobSteps:
 			try:
 				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
 #								{"waitCommand": "du -h WRF.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #See Above
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "error", "retCode": 2},]
 				# Note: I have the script checking the files once every three minutes so we don't stack five calls rapidly, this can be modified later if needed.
 				wait2 = Wait(secondWait, timeDelay = 180)
 				wRC = wait2.hold()
@@ -454,15 +454,19 @@ class Application():
 			print("  4.a Geogrid flag is not set, skipping step")
 		print("  4.a. Done")
 		print("  4.b. Running pre-processing executables")
+		time.sleep(10)
 		jobs.run_ungrib()
+		time.sleep(10)
 		if(jobs.run_metgrid() == False):
 			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
 		print("  4.b. Done")
 		print("  4.c. Running WRF executables")
+		time.sleep(10)
 		if(jobs.run_real() == False):
 			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
-			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")		
+			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")	
+		time.sleep(10)
 		if(jobs.run_wrf() == False):
 			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
 			sys.exit("   4.c. ERROR: wrf.exe process failed to complete, check error file.")	
