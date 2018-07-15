@@ -8,3 +8,4 @@ ungrib.exe
 cp Vtable.CFSR_sfc_flxf06 Vtable
 cp namelist.wps.FLX namelist.wps
 ungrib.exe
+exit

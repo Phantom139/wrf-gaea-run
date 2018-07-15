@@ -288,8 +288,11 @@ class JobSteps:
 				sys.exit("metgrid.exe job not completed, abort.")
 			#Now wait for the output file to be completed
 			try:
-				secondWait = [{"waitCommand": "tail -n 1 METGRID.o*", "contains": "*** Successful completion of program metgrid.exe ***", "retCode": 1},
-							  {"waitCommand": "du -h METGRID.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}]
+				secondWait = [{"waitCommand": "tail -n 3 METGRID.o*", "contains": "Successful completion of metgrid", "retCode": 1},
+#								{"waitCommand": "du -h METGRID.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #7/15: WARN messages that don't affect results can trigger this condition
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
 				wait2 = Wait(secondWait, timeDelay = 25)
 				wRC = wait2.hold()
 				if wRC == 1:
@@ -314,7 +317,7 @@ class JobSteps:
 			#Now wait for the output file to be completed
 			try:
 				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
-							  {"waitCommand": "du -h REAL.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2},
+#								{"waitCommand": "du -h REAL.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #See Above
 							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
 							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
 							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
@@ -351,7 +354,7 @@ class JobSteps:
 			#Now wait for the output file to be completed
 			try:
 				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
-							  {"waitCommand": "du -h WRF.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2},
+#								{"waitCommand": "du -h WRF.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #See Above
 							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Fatal", "retCode": 2},
 							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Runtime", "retCode": 2},
 							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "Error", "retCode": 2},]
