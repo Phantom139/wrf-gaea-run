@@ -125,7 +125,7 @@ class Template_Writer:
 			with open(inFile, 'r') as source_file:
 				for line in source_file:
 					newLine = line
-					newLine = self.aSet.replace(newLine)				
+					newLine = self.aSet.replace(newLine) + '\n'				
 					target_file.write(newLine)	
 
 #TimeExpiredException: Custom exception that is thrown when the Wait() command expires
