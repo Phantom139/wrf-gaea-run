@@ -328,8 +328,8 @@ class JobSteps:
 					return False
 				else:
 					#Validate the presense of the two files.
-					file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"", "yes").read()
-					file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"", "yes").read()
+					file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
+					file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
 					if("yes" in file1 and "yes" in file2):
 						return True
 					return False					
