@@ -405,8 +405,8 @@ class PostRunCleanup():
 			cleanWRFOut = True
 		if(cleanOutFiles == True):
 			os.system("rm " + wrfDir + "/geogrid.log.*")
-			os.system("rm " + outDir + "/metgrid.log.*")
-			os.system("rm " + outDir + "/ungrib.log*")
+			os.system("rm " + wrfDir + "/metgrid.log.*")
+			os.system("rm " + wrfDir + "/ungrib.log*")
 			os.system("rm " + outDir + "/rsl.out.*")
 			os.system("rm " + wrfDir + "/GEOGRID.o*")
 			os.system("rm " + wrfDir + "/METGRID.o*")
