@@ -50,7 +50,10 @@ class AppSettings():
 			print("Key does not exist")
 			return None    
 			
-	def assembleKeys(self):
+	def assembleKeys(self):	
+		# DFI
+		dfi_back = self.startTime - datetime.timedelta(hours=1)
+		dfi_fwd = self.startTime + datetime.timedelta(minutes=30)
 		# Construct the replacement dictionary from the settings
 		self.replacementKeys["[run_days]"] = str(self.runDays)
 		self.replacementKeys["[run_hours]"] = str(self.runHours)
@@ -85,7 +88,17 @@ class AppSettings():
 		self.replacementKeys["[num_wrf_nodes]"] = self.fetch("num_wrf_nodes")
 		self.replacementKeys["[num_wrf_processors]"] = self.fetch("num_wrf_processors")
 		self.replacementKeys["[wrf_walltime]"] = self.fetch("wrf_walltime")
-		self.replacementKeys["[mpi_wrf_total]"] = str(int(self.fetch("num_wrf_nodes")) * int(self.fetch("num_wrf_processors")))		
+		self.replacementKeys["[mpi_wrf_total]"] = str(int(self.fetch("num_wrf_nodes")) * int(self.fetch("num_wrf_processors")))
+		self.replacementKeys["[dfi_back_year]"] = str(dfi_back.year)		
+		self.replacementKeys["[dfi_back_month]"] = str(dfi_back.month)
+		self.replacementKeys["[dfi_back_day]"] = str(dfi_back.day)
+		self.replacementKeys["[dfi_back_hour]"] = str(dfi_back.hour)
+		self.replacementKeys["[dfi_back_minute]"] = str(dfi_back.minute)
+		self.replacementKeys["[dfi_fwd_year]"] = str(dfi_fwd.year)		
+		self.replacementKeys["[dfi_fwd_month]"] = str(dfi_fwd.month)
+		self.replacementKeys["[dfi_fwd_day]"] = str(dfi_fwd.day)
+		self.replacementKeys["[dfi_fwd_hour]"] = str(dfi_fwd.hour)
+		self.replacementKeys["[dfi_fwd_minute]"] = str(dfi_fwd.minute)		
 	 
 	def replace(self, str):
 		if not str:
