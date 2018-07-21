@@ -121,12 +121,14 @@ class Template_Writer:
 		self.aSet = settings
 					
 	def generateTemplatedFile(self, inFile, outFile):
+		outContents = ""
 		with open(outFile, 'w') as target_file:
 			with open(inFile, 'r') as source_file:
 				for line in source_file:
 					newLine = line
-					newLine = self.aSet.replace(newLine) + '\n'				
-					target_file.write(newLine)	
+					newLine = self.aSet.replace(newLine) + '\n'
+					outContents += newLine
+			target_file.write(outContents)	
 
 #TimeExpiredException: Custom exception that is thrown when the Wait() command expires
 class TimeExpiredException(Exception):

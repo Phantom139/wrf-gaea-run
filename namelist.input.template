@@ -112,17 +112,17 @@
  dfi_write_dfi_history               = .false.
  dfi_cutoff_seconds                  = 5400
  dfi_time_dim                        = 1000
- dfi_bckstop_year                    = 2017
- dfi_bckstop_month                   = 04
- dfi_bckstop_day                     = 01
- dfi_bckstop_hour                    = 23
- dfi_bckstop_minute                  = 00
+ dfi_bckstop_year                    = [dfi_back_year]
+ dfi_bckstop_month                   = [dfi_back_month]
+ dfi_bckstop_day                     = [dfi_back_day]
+ dfi_bckstop_hour                    = [dfi_back_hour]
+ dfi_bckstop_minute                  = [dfi_back_minute]
  dfi_bckstop_second                  = 00
- dfi_fwdstop_year                    = 2017
- dfi_fwdstop_month                   = 04
- dfi_fwdstop_day                     = 02
- dfi_fwdstop_hour                    = 00
- dfi_fwdstop_minute                  = 30
+ dfi_fwdstop_year                    = [dfi_fwd_year]
+ dfi_fwdstop_month                   = [dfi_fwd_month]
+ dfi_fwdstop_day                     = [dfi_fwd_day]
+ dfi_fwdstop_hour                    = [dfi_fwd_hour]
+ dfi_fwdstop_minute                  = [dfi_fwd_minute]
  dfi_fwdstop_second                  = 00
 /
 
