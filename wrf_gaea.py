@@ -304,7 +304,7 @@ class JobSteps:
 				sys.exit("metgrid.exe job not completed, abort.")
 			#Now wait for the output file to be completed
 			try:
-				secondWait = [{"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "Successful completion of metgrid", "retCode": 1},
+				secondWait = [{"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "Successful completion of program metgrid.exe", "retCode": 1},
 #								{"waitCommand": "du -h METGRID.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #7/15: WARN messages that don't affect results can trigger this condition
 							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "fatal", "retCode": 2},
 							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "runtime", "retCode": 2},
@@ -428,8 +428,40 @@ class PostRunCleanup():
 			os.system("rm " + outDir + "/met_em*")
 			os.system("rm " + outDir + "/wrfinput*")
 			os.system("rm " + outDir + "/wrfbdy*")
+			os.system("rm " + outDir + "/geo_em.d01.nc")
+			os.system("rm " + outDir + "/aero*")
+			os.system("rm " + outDir + "/bulk*")
+			os.system("rm " + outDir + "/CAM*")
+			os.system("rm " + outDir + "/capacity.asc")
+			os.system("rm " + outDir + "/CCN*")
+			os.system("rm " + outDir + "/CLM*")
+			os.system("rm " + outDir + "/co2_trans")
+			os.system("rm " + outDir + "/coeff*")
+			os.system("rm " + outDir + "/constants.asc")
+			os.system("rm " + outDir + "/create_p3_lookupTable_1.f90")
+			os.system("rm " + outDir + "/ETA*")
+			os.system("rm " + outDir + "/GEN*")
+			os.system("rm " + outDir + "/grib*")
+			os.system("rm " + outDir + "/kernels*")
+			os.system("rm " + outDir + "/LANDUSE.TBL")
+			os.system("rm " + outDir + "/masses.asc")
+			os.system("rm " + outDir + "/MPTABLE.TBL")
+			os.system("rm " + outDir + "/ozone*")
+			os.system("rm " + outDir + "/p3_lookup_table_1.dat")
+			os.system("rm " + outDir + "/RRTM*")
+			os.system("rm " + outDir + "/RRTMG*")
+			os.system("rm " + outDir + "/SOILPARM.TBL")
+			os.system("rm " + outDir + "/termvels.asc")
+			os.system("rm " + outDir + "/tr*")
+			os.system("rm " + outDir + "/URB*")
+			os.system("rm " + outDir + "/VEG*")
+			os.system("rm " + outDir + "/wind-turbine-1.tbl")
+			os.system("rm " + outDir + "/real.exe")
+			os.system("rm " + outDir + "/tc.exe")
+			os.system("rm " + outDir + "/wrf.exe")
 		if(cleanWRFOut == True):
 			os.system("rm " + outDir + "/wrfout*")
+			os.system("rm " + outDir + "/wrfrst*")
 		return None
 
 # Application: Class responsible for running the program steps.
