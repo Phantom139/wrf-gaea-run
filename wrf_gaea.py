@@ -268,8 +268,8 @@ class JobSteps:
 		#Copy important files to the directory
 		os.system("cp Vtable.CFSR_press_pgbh06 " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("cp Vtable.CFSR_sfc_flxf06 " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("ln -s geo_em.d01.nc " + self.wrfDir + '/' + self.startTime[0:8] + "/output") #Note: For now, need to add a test for the geogrid flag later.
-		os.system("ln -s run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		os.system("cp geo_em.d01.nc " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		os.system("cp run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		#Move the generated files to the run directory		
 		os.system("mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		os.system("mv namelist.wps.3D " + self.wrfDir + '/' + self.startTime[0:8])
@@ -297,19 +297,18 @@ class JobSteps:
 			os.system("qsub metgrid.job")
 			#Submit a wait condition for the file to appear
 			try:
-				firstWait = [{"waitCommand": "(ls METGRID.o* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1},
-				             {"waitCommand": "(ls METGRID.e* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				firstWait = [{"waitCommand": "(ls metgrid.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
 				wait1 = Wait(firstWait, timeDelay = 25)
 				wait1.hold()
 			except TimeExpiredException:
 				sys.exit("metgrid.exe job not completed, abort.")
 			#Now wait for the output file to be completed
 			try:
-				secondWait = [{"waitCommand": "tail -n 3 METGRID.o*", "contains": "Successful completion of metgrid", "retCode": 1},
+				secondWait = [{"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "Successful completion of metgrid", "retCode": 1},
 #								{"waitCommand": "du -h METGRID.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #7/15: WARN messages that don't affect results can trigger this condition
-							  {"waitCommand": "tail -n 3 METGRID.e*", "contains": "fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 3 METGRID.e*", "contains": "runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 3 METGRID.e*", "contains": "error", "retCode": 2},]
+							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "error", "retCode": 2},]
 				wait2 = Wait(secondWait, timeDelay = 25)
 				wRC = wait2.hold()
 				if wRC == 1:
@@ -326,18 +325,18 @@ class JobSteps:
 			os.system("qsub real.job")
 			#Submit a wait condition for the file to appear
 			try:
-				firstWait = [{"waitCommand": "(ls REAL.o* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				firstWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
 				wait1 = Wait(firstWait, timeDelay = 25)
 				wait1.hold()			
 			except TimeExpiredException:
 				sys.exit("real.exe job not completed, abort.")
 			#Now wait for the output file to be completed
 			try:
-				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
+				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS", "retCode": 1},
 #								{"waitCommand": "du -h REAL.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #See Above
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "error", "retCode": 2},]
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "error", "retCode": 2},]
 				wait2 = Wait(secondWait, timeDelay = 60)
 				wRC = wait2.hold()
 				if wRC == 2:
@@ -362,7 +361,7 @@ class JobSteps:
 			os.system("qsub wrf.job")
 			#Submit a wait condition for the file to appear
 			try:
-				firstWait = [{"waitCommand": "(ls WRF.o* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				firstWait = [{"waitCommand": "(ls rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
 				wait1 = Wait(firstWait, timeDelay = 25)
 				wait1.hold()			
 			except TimeExpiredException:
@@ -370,11 +369,11 @@ class JobSteps:
 			#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
 			#Now wait for the output file to be completed
 			try:
-				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.*", "contains": "SUCCESS", "retCode": 1},
+				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS", "retCode": 1},
 #								{"waitCommand": "du -h WRF.e*", "splitFirst": 1, "isNotValue": "0", "retCode": 2}, #See Above
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.*", "contains": "error", "retCode": 2},]
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "error", "retCode": 2},]
 				# Note: I have the script checking the files once every three minutes so we don't stack five calls rapidly, this can be modified later if needed.
 				wait2 = Wait(secondWait, timeDelay = 180)
 				wRC = wait2.hold()
