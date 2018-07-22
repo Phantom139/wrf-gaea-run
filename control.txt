@@ -35,5 +35,5 @@ real_walltime 02:00:00
 # WRF Parameters
 num_wrf_nodes 8
 num_wrf_processors 12
-wrf_walltime 70:00:00
+wrf_walltime 48:00:00
 # Post-Processing Parameters
