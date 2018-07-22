@@ -164,32 +164,30 @@ class Wait:
 	
 	def hold(self):
 		cTime = datetime.datetime.utcnow()
-		if(cTime > self.abortTime):
-			raise TimeExpiredException
-			return None
-		
-		for indHold in self.holds:
-			command = indHold["waitCommand"]
-			retCode = indHold["retCode"]
-			cResult = os.popen(command).read()
-			if 'splitFirst' in indHold:
-				cResult = cResult.split()[0]
-			if 'contains' in indHold:
-				contains = indHold["contains"]
-				if(contains in cResult):
-					return retCode
-			elif 'isValue' in indHold:
-				isValue = indHold["isValue"]
-				if(cResult == isValue):
-					return retCode
-			elif 'isNotValue' in indHold:
-				isValue = indHold["isNotValue"]
-				if(cResult != isValue):
-					return retCode
-			else:
-				return cResult	
-		time.sleep(self.timeDelay)
-		return self.hold()
+		while cTime < self.abortTime:
+			for indHold in self.holds:
+				command = indHold["waitCommand"]
+				retCode = indHold["retCode"]
+				cResult = os.popen(command).read()
+				if 'splitFirst' in indHold:
+					cResult = cResult.split()[0]
+				if 'contains' in indHold:
+					contains = indHold["contains"]
+					if(contains in cResult):
+						return retCode
+				elif 'isValue' in indHold:
+					isValue = indHold["isValue"]
+					if(cResult == isValue):
+						return retCode
+				elif 'isNotValue' in indHold:
+					isValue = indHold["isNotValue"]
+					if(cResult != isValue):
+						return retCode
+				else:
+					return cResult	
+			time.sleep(self.timeDelay)			
+		raise TimeExpiredException
+		return None
 
 #CD: Current Directory management, see https://stackoverflow.com/a/13197763/7537290 for implementation. This is used to maintain the overall OS CWD while allowing embedded changes.
 class cd:
