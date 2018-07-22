@@ -360,7 +360,7 @@ class JobSteps:
 			os.system("qsub wrf.job")
 			#Submit a wait condition for the file to appear
 			try:
-				firstWait = [{"waitCommand": "(ls rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				firstWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
 				wait1 = Wait(firstWait, timeDelay = 25)
 				wait1.hold()			
 			except TimeExpiredException:
