@@ -185,7 +185,8 @@ class Wait:
 						return retCode
 				else:
 					return cResult	
-			time.sleep(self.timeDelay)			
+			time.sleep(self.timeDelay)
+			cTime = datetime.datetime.utcnow()
 		raise TimeExpiredException
 		return None
 
