@@ -13,7 +13,7 @@ class Application():
 		#NOTE: If you're looking to automate (CRON) jobs, use this portion of the code to update control.txt
 		
 		#Run the script
-		os.system("nohup python wrf_gaea.py > wrf_gaea.log")
+		os.system("nohup wrf_gaea.py > /data1/climlab/wrf-gaea-run/wrf_gaea.log")
 
 if __name__ == "__main__":
 	pInst = Application()
