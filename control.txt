@@ -15,8 +15,9 @@ rundays 1
 runhours 0
 geogdir /data1/climlab/wrf_geog
 tabledir /data1/climlab/shared_tables
-cfsdir /data1/climlab/cfs_data
+datadir /data1/climlab/model_data
 wrfdir /data1/climlab/runs
+modeldata CFSv2
 # Geogrid Parameters
 run_geogrid 0 #run_geogrid: Flag this parameter as 1 if the grid has been updated, otherwise geogrid can be skipped to use the existing grid
 num_geogrid_nodes 2

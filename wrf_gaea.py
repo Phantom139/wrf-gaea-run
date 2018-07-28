@@ -2,7 +2,7 @@
 # wrf_gaea.py
 # Robert C Fritzen - Dpt. Geographic & Atmospheric Sciences
 #
-# Performs tasks related to obtaining CFS data and running WRF on gaea in a single process
+# Performs tasks related to obtaining data and running WRF on gaea in a single process
 
 import sys
 import os
@@ -10,6 +10,24 @@ import os.path
 import datetime
 import time
 from multiprocessing.pool import ThreadPool
+
+# ModelDataParameters: Mini class instance that stores information about various WRF data
+class ModelDataParameters():
+	dataParameters = {}
+	
+	def __init__(self):
+		self.dataParameters = {
+			"CFSv2": {
+				"VTable": ["Vtable.CFSv2.3D", "Vtable.CFSv2.FLX"],
+				"FileExtentions": ["3D", "FLX"],
+				"FGExt": "3D, FLX",
+				"HourDelta": 6,
+			},
+		}	
+	
+	def fetch(self):
+		return self.dataParameters	
+	
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
 class AppSettings():
@@ -20,7 +38,8 @@ class AppSettings():
 	settings = {}
 	replacementKeys = {}
 	myUserID = None
-
+	modelParms = None
+	
 	def loadSettings(self):
 		with open("control.txt") as f: 
 			for line in f: 
@@ -72,7 +91,7 @@ class AppSettings():
 		self.replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8]
 		self.replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
 		self.replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
-		self.replacementKeys["[data_dir]"] = self.fetch("cfsdir") + '/' + self.fetch("starttime")
+		self.replacementKeys["[data_dir]"] = self.fetch("datadir") + '/' + self.fetch("starttime")
 		self.replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
 		self.replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
 		self.replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
@@ -112,10 +131,12 @@ class AppSettings():
 	def whoami(self):
 		return self.myUserID
      
-	def __init__(self):
+	def __init__(self, modelParms):
 		if(self.loadSettings() == False):
 			sys.exit("Failed to load settings, please check for control.txt")
         
+		self.modelParms = modelParms
+		
 		self.myUserID = os.popen("whoami").read()
 		
 		self.startTime = datetime.datetime.strptime(self.fetch("starttime"), "%Y%m%d%H")
@@ -129,17 +150,23 @@ class AppSettings():
 # Template_Writer: Class responsible for taking the template files and saving the use files with parameters set
 class Template_Writer:
 	aSet = None
+	modelParms = None
 	
-	def __init__(self, settings):
+	def __init__(self, settings, modelParms):
 		self.aSet = settings
+		self.modelParms = modelParms
 					
-	def generateTemplatedFile(self, inFile, outFile):
+	def generateTemplatedFile(self, inFile, outFile, extraKeys = None):
 		outContents = ""
 		with open(outFile, 'w') as target_file:
 			with open(inFile, 'r') as source_file:
 				for line in source_file:
 					newLine = line
-					newLine = self.aSet.replace(newLine) + '\n'
+					newLine = self.aSet.replace(newLine)
+					if(extraKeys != None):
+						for key, value in extraKeys.items():
+							newLine = newLine.replace(key, value)
+					newLine += '\n'
 					outContents += newLine
 			target_file.write(outContents)	
 
@@ -203,24 +230,25 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 		
-#CFSV2_Fetch: Class responsible for downloading and storing the CSFV2 Data
-class CFSV2_Fetch():
-	
+#ModelData: Class responsible for downloading and managing model data
+class ModelData():
+	modelParms = None
+	model = ""
 	startTime = ""
-	cfsDir = ""
+	dataDir = ""
 	runDays = 1
 	runHours = 1
 
-	def __init__(self, settings):
-		self.cfsDir = settings.fetch("cfsdir")
+	def __init__(self, settings, modelParms):
+		self.modelParms = modelParms
+		self.model = settings.fetch("modeldata")
+		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
 		self.runHours = settings.fetch("runhours")
 		
-		self.fetchFiles()
-		
 	def fetchFiles(self):
-		dirPath = self.cfsDir + '/' + str(self.startTime.strftime('%Y%m%d%H'))
+		dirPath = self.dataDir + '/' + str(self.startTime.strftime('%Y%m%d%H'))
 		if not os.path.isdir(dirPath):
 			os.system("mkdir " + dirPath)
 	
@@ -229,50 +257,50 @@ class CFSV2_Fetch():
 		current = self.startTime
 		while current <= enddate:
 			dates.append(current)
-			current += datetime.timedelta(hours=6)	
+			current += datetime.timedelta(hours=dataParameters[self.model]["HourDelta"])	
 			
 		t = ThreadPool(processes=6)
 		rs = t.map(self.pooled_download, dates)
 		t.close()
 	
 	def pooled_download(self, timeObject):
-		prs_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_pgbf/"
-		flx_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/"
-		
-		strTime = str(self.startTime.strftime('%Y%m%d%H'))
-		
-		pgrb2link = prs_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/pgbf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
-		sgrb2link = flx_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/flxf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
-		pgrb2writ = self.cfsDir + '/' + strTime + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
-		sgrb2writ = self.cfsDir + '/' + strTime + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
-		if not os.path.isfile(pgrb2writ):
-			os.system("wget " + pgrb2link + " -O " + pgrb2writ)
-		if not os.path.isfile(sgrb2writ):
-			os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
+		if(self.model == "CSFv2"):
+			prs_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_pgbf/"
+			flx_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/"
+			strTime = str(self.startTime.strftime('%Y%m%d%H'))
+			
+			pgrb2link = prs_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/pgbf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
+			sgrb2link = flx_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/flxf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
+			pgrb2writ = self.dataDir + '/' + strTime + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+			sgrb2writ = self.dataDir + '/' + strTime + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+			if not os.path.isfile(pgrb2writ):
+				os.system("wget " + pgrb2link + " -O " + pgrb2writ)
+			if not os.path.isfile(sgrb2writ):
+				os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
 	
 # JobSteps: Class responsible for handling the steps that involve job submission and checkup
 class JobSteps:
 	aSet = None
+	modelParms = None
 	startTime = ""
-	cfsDir = ""
+	dataDir = ""
 	wrfDir = ""
 
-	def __init__(self, settings):
+	def __init__(self, settings, modelParms):
 		self.aSet = settings
-		self.cfsDir = settings.fetch("cfsdir")
+		self.modelParms = modelParms
+		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
-		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("mkdir " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		#Copy important files to the directory
-		os.system("cp Vtable.CFSR_press_pgbh06 " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("cp Vtable.CFSR_sfc_flxf06 " + self.wrfDir + '/' + self.startTime[0:8])
+		#os.system("cp Vtable.CFSR_press_pgbh06 " + self.wrfDir + '/' + self.startTime[0:8])
+		#os.system("cp Vtable.CFSR_sfc_flxf06 " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("cp geo_em.d01.nc " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		os.system("cp run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		#Move the generated files to the run directory		
 		os.system("mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
-		os.system("mv namelist.wps.3D " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("mv namelist.wps.FLX " + self.wrfDir + '/' + self.startTime[0:8])
+		#os.system("mv namelist.wps.3D " + self.wrfDir + '/' + self.startTime[0:8])
+		#os.system("mv namelist.wps.FLX " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv geogrid.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv metgrid.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv real.job " + self.wrfDir + '/' + self.startTime[0:8])
@@ -289,8 +317,6 @@ class JobSteps:
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
 			os.system("./ungrib.csh")		
 		
-	### BIG TO-DO: Need to update the Wait class to be able to test multiple conditions at once with return code for each if triggered
-	###  The likely best bet choice here is some kind of a list which stores a dictionary {command:Blah,condition:Blah,return:0} for instance
 	def run_metgrid(self):
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
 			os.system("qsub metgrid.job")
@@ -393,8 +419,9 @@ class PostRunCleanup():
 	def __init__(self, settings):
 		self.sObj = settings
 		
-	def performClean(self, cleanAll = True, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = True):
+	def performClean(self, cleanAll = True, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = True, cleanModelData = True):
 		sTime = self.sObj.fetch("starttime")
+		dataDir = self.sObj.fetch("datadir") + '/' + self.sObj.fetch("modeldata") + sTime
 		wrfDir = self.sObj.fetch("wrfdir") + '/' + sTime[0:8]
 		outDir = wrfDir + "/output"
 		if(cleanAll == True):
@@ -402,6 +429,7 @@ class PostRunCleanup():
 			cleanErrorFiles = True
 			cleanInFiles = True
 			cleanWRFOut = True
+			cleanModelData = True
 		if(cleanOutFiles == True):
 			os.system("rm " + wrfDir + "/geogrid.log.*")
 			os.system("rm " + wrfDir + "/metgrid.log.*")
@@ -461,6 +489,8 @@ class PostRunCleanup():
 		if(cleanWRFOut == True):
 			os.system("rm " + outDir + "/wrfout*")
 			os.system("rm " + outDir + "/wrfrst*")
+		if(cleanModelData == True):
+			os.system("rm -r " + dataDir)
 		return None
 
 # Application: Class responsible for running the program steps.
@@ -468,21 +498,25 @@ class Application():
 	def __init__(self):
 		print("Initializing WRF Auto-Run Program")
 		#Step 1: Load program settings
-		print(" 1. Loading program settings")
+		print(" 1. Loading program settings, Performing pre-run directory creations")
+		modelParms = ModelDataParameters()
 		settings = AppSettings()
 		prc = PostRunCleanup(settings)
 		prc.performClean()
+		mParms = modelParms.fetch()[settings.fetch("modeldata")]
+		os.system("mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8])
+		os.system("mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + "/output")		
 		print(" 1. Done.")
-		#Step 2: Download CSFV2 Files
-		print(" 2. Downloading CSFV2 Files")
-		downloads = CFSV2_Fetch(settings)
+		#Step 2: Download Data Files
+		print(" 2. Downloading Model Data Files")
+		modelData = ModelData(settings, modelParms)
 		print(" 2. Done")
 		#Step 3: Generate run files
 		print(" 3. Generating run files from templates")
-		tWrite = Template_Writer(settings)
+		tWrite = Template_Writer(settings, modelParms)
+		for ext in mParms["FileExtentions"]:
+			tWrite.generateTemplatedFile("namelist.wps.template", "namelist.wps." + ext, extraKeys = {"[ungrib_prefix]": ext, "[fg_name]": mParms["FGExt"]})
 		tWrite.generateTemplatedFile("namelist.input.template", "namelist.input")
-		tWrite.generateTemplatedFile("namelist.wps.3D.template", "namelist.wps.3D")
-		tWrite.generateTemplatedFile("namelist.wps.FLX.template", "namelist.wps.FLX")
 		tWrite.generateTemplatedFile("geogrid.job.template", "geogrid.job")
 		tWrite.generateTemplatedFile("metgrid.job.template", "metgrid.job")
 		tWrite.generateTemplatedFile("real.job.template", "real.job")
@@ -491,7 +525,7 @@ class Application():
 		print(" 3. Done")
 		#Step 4: Run the WRF steps
 		print(" 4. Run WRF Steps")
-		jobs = JobSteps(settings)
+		jobs = JobSteps(settings, modelParms)
 		print("  4.a Checking for geogrid flag...")
 		if(settings.fetch("run_geogrid") == '1'):
 			print("  4.a Geogrid flag is set, preparing geogrid job.")
@@ -505,17 +539,17 @@ class Application():
 		jobs.run_ungrib()
 		time.sleep(10)
 		if(jobs.run_metgrid() == False):
-			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
+			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True, cleanModelData = False)
 			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
 		print("  4.b. Done")
 		print("  4.c. Running WRF executables")
 		time.sleep(10)
 		if(jobs.run_real() == False):
-			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
+			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True, cleanModelData = False)
 			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")	
 		time.sleep(10)
 		if(jobs.run_wrf() == False):
-			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True)
+			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True, cleanModelData = False)
 			sys.exit("   4.c. ERROR: wrf.exe process failed to complete, check error file.")	
 		print("  4.c. Done")
 		print(" 4. Done")
@@ -525,7 +559,7 @@ class Application():
 		print(" 5. Done")
 		#Step 6: Cleanup
 		print(" 6. Cleaning Temporary Files")
-		#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False)
+		#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False, cleanModelData = True)
 		print(" 6. Done")		
 		#Done.
 		print("All Steps Completed.")
