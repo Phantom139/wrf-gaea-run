@@ -316,13 +316,13 @@ class JobSteps:
 		mParms = self.modelParms.fetch()
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
 			with open("ungrib.csh", 'w') as target_file:
-				target_file.write("module add " + self.aSet.fetch("wrfmodule"))
-				target_file.write("./link_grib.csh " + self.dataDir + '/' + self.startTime + '/')
+				target_file.write("module add " + self.aSet.fetch("wrfmodule") + '\n')
+				target_file.write("./link_grib.csh " + self.dataDir + '/' + self.startTime + '/' + '\n')
 				i = 0
 				for ext in mParms["FileExtentions"]:
-					target_file.write("cp " + mParms["VTable"][i] + " Vtable")
-					target_file.write("cp namelist.wps." + ext + " namelist.wps")
-					target_file.write("ungrib.exe")
+					target_file.write("cp " + mParms["VTable"][i] + " Vtable" + '\n')
+					target_file.write("cp namelist.wps." + ext + " namelist.wps" + '\n')
+					target_file.write("ungrib.exe" + '\n')
 					i += 1
 			os.system("chmod +x ungrib.csh")
 			os.system("./ungrib.csh")
