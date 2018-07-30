@@ -6,7 +6,7 @@
 
 cd [run_output_dir]
 
-module add wrf/wrf-3.9.1
+module add [wrf_module]
 
 ulimit -s unlimited
 mpirun -np [mpi_wrf_total] wrf.exe

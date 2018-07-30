@@ -6,6 +6,6 @@
 
 cd [run_output_dir]
 
-module add wrf/wrf-3.9.1
+module add [wrf_module]
 
 mpirun -np [mpi_real_total] real.exe

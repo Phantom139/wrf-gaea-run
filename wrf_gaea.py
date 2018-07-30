@@ -14,8 +14,10 @@ from multiprocessing.pool import ThreadPool
 # ModelDataParameters: Mini class instance that stores information about various WRF data
 class ModelDataParameters():
 	dataParameters = {}
+	settings = None
 	
-	def __init__(self):
+	def __init__(self, settings):
+		self.settings = settings
 		self.dataParameters = {
 			"CFSv2": {
 				"VTable": ["Vtable.CFSv2.3D", "Vtable.CFSv2.FLX"],
@@ -25,8 +27,11 @@ class ModelDataParameters():
 			},
 		}	
 	
+	def validModel(self):
+		return self.settings.fetch("modeldata") in self.dataParameters
+	
 	def fetch(self):
-		return self.dataParameters	
+		return self.dataParameters[self.settings.fetch("modeldata")]
 	
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
@@ -86,12 +91,13 @@ class AppSettings():
 		self.replacementKeys["[end_month]"] = str(self.endTime.month)
 		self.replacementKeys["[end_day]"] = str(self.endTime.day)
 		self.replacementKeys["[end_hour]"] = str(self.endTime.hour)
+		self.replacementKeys["[wrf_module]"] = self.fetch("wrfmodule")
 		self.replacementKeys["[geog_path]"] = self.fetch("geogdir")
 		self.replacementKeys["[table_path]"] = self.fetch("tabledir")
 		self.replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8]
 		self.replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
 		self.replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
-		self.replacementKeys["[data_dir]"] = self.fetch("datadir") + '/' + self.fetch("starttime")
+		self.replacementKeys["[data_dir]"] = self.fetch("datadir") + '/' + self.fetch("modeldata") + '/' + self.fetch("starttime")
 		self.replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
 		self.replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
 		self.replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
@@ -293,20 +299,14 @@ class JobSteps:
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
 		#Copy important files to the directory
-		#os.system("cp Vtable.CFSR_press_pgbh06 " + self.wrfDir + '/' + self.startTime[0:8])
-		#os.system("cp Vtable.CFSR_sfc_flxf06 " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("cp geo_em.d01.nc " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		os.system("cp run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		#Move the generated files to the run directory		
 		os.system("mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
-		#os.system("mv namelist.wps.3D " + self.wrfDir + '/' + self.startTime[0:8])
-		#os.system("mv namelist.wps.FLX " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv geogrid.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv metgrid.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv real.job " + self.wrfDir + '/' + self.startTime[0:8])
 		os.system("mv wrf.job " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("mv ungrib.csh " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("chmod +x " + self.wrfDir + '/' + self.startTime[0:8] + "/ungrib.csh")
 	
 	def run_geogrid(self):
 		#
@@ -314,8 +314,18 @@ class JobSteps:
 	
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
+		os.system("cp Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("cp namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
+		mParms = self.modelParms.fetch()
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
-			os.system("./ungrib.csh")		
+			os.system("module add " + self.aSet.fetch("wrfmodule"))
+			os.system("./link_grib.csh " + self.dataDir + '/' + self.startTime + '/')
+			i = 0
+			for ext in mParms["FileExtentions"]:
+				os.system("cp " + mParms["VTable"][i] + " Vtable")
+				os.system("cp namelist.wps." + ext + " namelist.wps")
+				os.system("ungrib.exe")
+				i++
 		
 	def run_metgrid(self):
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
@@ -499,11 +509,14 @@ class Application():
 		print("Initializing WRF Auto-Run Program")
 		#Step 1: Load program settings
 		print(" 1. Loading program settings, Performing pre-run directory creations")
-		modelParms = ModelDataParameters()
 		settings = AppSettings()
+		modelParms = ModelDataParameters(settings)
+		if(!modelParms.validModel()):
+			sys.exit("Program failed at step 1, model data source: " + settings.fetch("modeldata") + ", is not defined in the program.")
+		print(" - Settings loaded, model data source " + settings.fetch("modeldata") + " applied to the program.")
 		prc = PostRunCleanup(settings)
 		prc.performClean()
-		mParms = modelParms.fetch()[settings.fetch("modeldata")]
+		mParms = modelParms.fetch()
 		os.system("mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8])
 		os.system("mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + "/output")		
 		print(" 1. Done.")
@@ -521,33 +534,28 @@ class Application():
 		tWrite.generateTemplatedFile("metgrid.job.template", "metgrid.job")
 		tWrite.generateTemplatedFile("real.job.template", "real.job")
 		tWrite.generateTemplatedFile("wrf.job.template", "wrf.job")
-		tWrite.generateTemplatedFile("ungrib.csh.template", "ungrib.csh")
 		print(" 3. Done")
 		#Step 4: Run the WRF steps
 		print(" 4. Run WRF Steps")
 		jobs = JobSteps(settings, modelParms)
-		print("  4.a Checking for geogrid flag...")
+		print("  4.a. Checking for geogrid flag...")
 		if(settings.fetch("run_geogrid") == '1'):
-			print("  4.a Geogrid flag is set, preparing geogrid job.")
+			print("  4.a. Geogrid flag is set, preparing geogrid job.")
 			jobs.run_geogrid()
-			print("  4.a Geogrid job Done")
+			print("  4.a. Geogrid job Done")
 		else:
-			print("  4.a Geogrid flag is not set, skipping step")
+			print("  4.a. Geogrid flag is not set, skipping step")
 		print("  4.a. Done")
 		print("  4.b. Running pre-processing executables")
-		time.sleep(10)
 		jobs.run_ungrib()
-		time.sleep(10)
 		if(jobs.run_metgrid() == False):
 			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True, cleanModelData = False)
 			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
 		print("  4.b. Done")
 		print("  4.c. Running WRF executables")
-		time.sleep(10)
 		if(jobs.run_real() == False):
 			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True, cleanModelData = False)
 			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")	
-		time.sleep(10)
 		if(jobs.run_wrf() == False):
 			#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = False, cleanInFiles = True, cleanWRFOut = True, cleanModelData = False)
 			sys.exit("   4.c. ERROR: wrf.exe process failed to complete, check error file.")	
@@ -559,7 +567,7 @@ class Application():
 		print(" 5. Done")
 		#Step 6: Cleanup
 		print(" 6. Cleaning Temporary Files")
-		#prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False, cleanModelData = True)
+		prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False, cleanModelData = True)
 		print(" 6. Done")		
 		#Done.
 		print("All Steps Completed.")
