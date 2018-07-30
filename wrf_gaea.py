@@ -258,7 +258,7 @@ class ModelData():
 		
 	def fetchFiles(self):
 		model = self.aSet.fetch("modeldata")
-		mParms = modelParms.fetch()
+		mParms = self.modelParms.fetch()
 		dirPath = self.dataDir + '/' + str(self.startTime.strftime('%Y%m%d%H'))
 		if not os.path.isdir(dirPath):
 			os.system("mkdir " + dirPath)
