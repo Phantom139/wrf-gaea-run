@@ -236,13 +236,15 @@ class cd:
 #ModelData: Class responsible for downloading and managing model data
 class ModelData():
 	aSet = None
+	modelParms = None
 	startTime = ""
 	dataDir = ""
 	runDays = 1
 	runHours = 1
 
-	def __init__(self, settings):
+	def __init__(self, settings, modelParms):
 		self.aSet = settings
+		self.modelParms = modelParms
 		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
@@ -256,6 +258,7 @@ class ModelData():
 		
 	def fetchFiles(self):
 		model = self.aSet.fetch("modeldata")
+		mParms = modelParms.fetch()
 		dirPath = self.dataDir + '/' + str(self.startTime.strftime('%Y%m%d%H'))
 		if not os.path.isdir(dirPath):
 			os.system("mkdir " + dirPath)
@@ -265,7 +268,7 @@ class ModelData():
 		current = self.startTime
 		while current <= enddate:
 			dates.append(current)
-			current += datetime.timedelta(hours=dataParameters[model]["HourDelta"])	
+			current += datetime.timedelta(hours=mParms["HourDelta"])	
 			
 		t = ThreadPool(processes=6)
 		rs = t.map(self.pooled_download, dates)
@@ -529,7 +532,7 @@ class Application():
 		print(" 1. Done.")
 		#Step 2: Download Data Files
 		print(" 2. Downloading Model Data Files")
-		modelData = ModelData(settings)
+		modelData = ModelData(settings, modelParms)
 		modelData.fetchFiles()
 		print(" 2. Done")
 		#Step 3: Generate run files
