@@ -325,7 +325,7 @@ class JobSteps:
 				os.system("cp " + mParms["VTable"][i] + " Vtable")
 				os.system("cp namelist.wps." + ext + " namelist.wps")
 				os.system("ungrib.exe")
-				i++
+				i += 1
 		
 	def run_metgrid(self):
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
