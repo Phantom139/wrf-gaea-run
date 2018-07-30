@@ -250,9 +250,9 @@ class ModelData():
 		print(" - Initializing model data with the following settings:")
 		print("  -> Model Data: " + settings.fetch("modeldata"))
 		print("  -> Data Directory: " + self.dataDir)
-		print("  -> Initialization Time: " + self.startTime)
-		print("  -> Run Days: " + self.runDays)
-		print("  -> Run Hours: " + self.runHours)
+		print("  -> Initialization Time: " + self.startTime.strftime('%Y%m%d%H'))
+		print("  -> Run Days: " + str(self.runDays))
+		print("  -> Run Hours: " + str(self.runHours))
 		
 	def fetchFiles(self):
 		model = self.aSet.fetch("modeldata")
