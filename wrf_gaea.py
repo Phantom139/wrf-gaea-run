@@ -247,6 +247,12 @@ class ModelData():
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
 		self.runHours = settings.fetch("runhours")
+		print(" - Initializing model data with the following settings:")
+		print("  -> Model Data: " + settings.fetch("modeldata"))
+		print("  -> Data Directory: " + self.dataDir)
+		print("  -> Initialization Time: " + self.startTime)
+		print("  -> Run Days: " + self.runDays)
+		print("  -> Run Hours: " + self.runHours)
 		
 	def fetchFiles(self):
 		model = self.aSet.fetch("modeldata")
@@ -524,6 +530,7 @@ class Application():
 		#Step 2: Download Data Files
 		print(" 2. Downloading Model Data Files")
 		modelData = ModelData(settings)
+		modelData.fetchFiles()
 		print(" 2. Done")
 		#Step 3: Generate run files
 		print(" 3. Generating run files from templates")
