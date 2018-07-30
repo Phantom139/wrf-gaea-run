@@ -22,7 +22,7 @@ class ModelDataParameters():
 			"CFSv2": {
 				"VTable": ["Vtable.CFSv2.3D", "Vtable.CFSv2.FLX"],
 				"FileExtentions": ["3D", "FLX"],
-				"FGExt": "3D, FLX",
+				"FGExt": "\'3D\', \'FLX\'",
 				"HourDelta": 6,
 			},
 		}	
@@ -315,14 +315,17 @@ class JobSteps:
 		os.system("cp namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
 		mParms = self.modelParms.fetch()
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
-			os.system("module add " + self.aSet.fetch("wrfmodule"))
-			os.system("./link_grib.csh " + self.dataDir + '/' + self.startTime + '/')
-			i = 0
-			for ext in mParms["FileExtentions"]:
-				os.system("cp " + mParms["VTable"][i] + " Vtable")
-				os.system("cp namelist.wps." + ext + " namelist.wps")
-				os.system("ungrib.exe")
-				i += 1
+			with open("ungrib.csh", 'w') as target_file:
+				target_file.write("module add " + self.aSet.fetch("wrfmodule"))
+				target_file.write("./link_grib.csh " + self.dataDir + '/' + self.startTime + '/')
+				i = 0
+				for ext in mParms["FileExtentions"]:
+					target_file.write("cp " + mParms["VTable"][i] + " Vtable")
+					target_file.write("cp namelist.wps." + ext + " namelist.wps")
+					target_file.write("ungrib.exe")
+					i += 1
+			os.system("chmod +x ungrib.csh")
+			os.system("./ungrib.csh")
 		
 	def run_metgrid(self):
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):	
