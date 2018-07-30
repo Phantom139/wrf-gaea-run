@@ -43,7 +43,6 @@ class AppSettings():
 	settings = {}
 	replacementKeys = {}
 	myUserID = None
-	modelParms = None
 	
 	def loadSettings(self):
 		with open("control.txt") as f: 
@@ -137,12 +136,10 @@ class AppSettings():
 	def whoami(self):
 		return self.myUserID
      
-	def __init__(self, modelParms):
+	def __init__(self):
 		if(self.loadSettings() == False):
 			sys.exit("Failed to load settings, please check for control.txt")
         
-		self.modelParms = modelParms
-		
 		self.myUserID = os.popen("whoami").read()
 		
 		self.startTime = datetime.datetime.strptime(self.fetch("starttime"), "%Y%m%d%H")
