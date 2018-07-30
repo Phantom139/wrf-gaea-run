@@ -511,7 +511,7 @@ class Application():
 		print(" 1. Loading program settings, Performing pre-run directory creations")
 		settings = AppSettings()
 		modelParms = ModelDataParameters(settings)
-		if(!modelParms.validModel()):
+		if not modelParms.validModel():
 			sys.exit("Program failed at step 1, model data source: " + settings.fetch("modeldata") + ", is not defined in the program.")
 		print(" - Settings loaded, model data source " + settings.fetch("modeldata") + " applied to the program.")
 		prc = PostRunCleanup(settings)
