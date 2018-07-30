@@ -235,22 +235,21 @@ class cd:
 		
 #ModelData: Class responsible for downloading and managing model data
 class ModelData():
-	modelParms = None
-	model = ""
+	aSet = None
 	startTime = ""
 	dataDir = ""
 	runDays = 1
 	runHours = 1
 
-	def __init__(self, settings, modelParms):
-		self.modelParms = modelParms
-		self.model = settings.fetch("modeldata")
+	def __init__(self, settings):
+		self.aSet = settings
 		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
 		self.runHours = settings.fetch("runhours")
 		
 	def fetchFiles(self):
+		model = self.aSet.fetch("modeldata")
 		dirPath = self.dataDir + '/' + str(self.startTime.strftime('%Y%m%d%H'))
 		if not os.path.isdir(dirPath):
 			os.system("mkdir " + dirPath)
@@ -260,14 +259,15 @@ class ModelData():
 		current = self.startTime
 		while current <= enddate:
 			dates.append(current)
-			current += datetime.timedelta(hours=dataParameters[self.model]["HourDelta"])	
+			current += datetime.timedelta(hours=dataParameters[model]["HourDelta"])	
 			
 		t = ThreadPool(processes=6)
 		rs = t.map(self.pooled_download, dates)
 		t.close()
 	
 	def pooled_download(self, timeObject):
-		if(self.model == "CSFv2"):
+		model = self.aSet.fetch("modeldata")
+		if(model == "CFSv2"):
 			prs_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_pgbf/"
 			flx_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/"
 			strTime = str(self.startTime.strftime('%Y%m%d%H'))
@@ -523,7 +523,7 @@ class Application():
 		print(" 1. Done.")
 		#Step 2: Download Data Files
 		print(" 2. Downloading Model Data Files")
-		modelData = ModelData(settings, modelParms)
+		modelData = ModelData(settings)
 		print(" 2. Done")
 		#Step 3: Generate run files
 		print(" 3. Generating run files from templates")
