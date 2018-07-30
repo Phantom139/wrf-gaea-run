@@ -245,7 +245,7 @@ class ModelData():
 	def __init__(self, settings, modelParms):
 		self.modelParms = modelParms
 		self.model = settings.fetch("modeldata")
-		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata") + settings.fetch("starttime")
+		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
 		self.runHours = settings.fetch("runhours")
@@ -317,6 +317,7 @@ class JobSteps:
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
 			with open("ungrib.csh", 'w') as target_file:
 				target_file.write("module add " + self.aSet.fetch("wrfmodule") + '\n')
+				target_file.write("cd " + self.wrfDir + '/' + self.startTime[0:8] + '\n')
 				target_file.write("link_grib.csh " + self.dataDir + '/' + self.startTime + '/' + '\n')
 				i = 0
 				for ext in mParms["FileExtentions"]:
