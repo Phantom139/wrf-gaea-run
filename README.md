@@ -22,11 +22,36 @@ Additionally, you will need to define a directory inside the repository director
 control.txt is a newline terminated text file which contains important parameters needed to run this script. The control.txt file MUST be located in the same directory as the wrf_gaea.py script file in order for the script to run. The format of this file is simple:
 
 Each command line is split into two breaks:
+
 **variable value**
 
 EX: myvar 12
+
 Would store the value of 12 in a parameter named myvar for the file. Any line that begins with a pound sign (#) is treated as a comment line. These variables are all defined in the AppSettings() class, but for simplicity, here is a list of the parameters accepted by control.txt
 
+  * starttime: The initialization time for the first forecast hour, the format is YYYYMMDDHH
+  * rundays: The number of days to run the model after initialization
+  * runhours: The number of hours to run in addition to rundays (IE: total = 24*rundays + runhours)
+  * geogdir: The path to the wrf_geog/ folder stored on your machine
+  * tabledir: The path to your shared WRF tables folder stored on your machine
+  * datadir: The path to where you want GRIB data to be stored, the full path is: datadir/model source/YYYYMMDDHH/
+  * wrfdir: The path to where you want model runs to occur on your machine
+  * wrfmodule: The name of the WRF module on your cluster (Added via module add wrfmodule)
+  * modeldata: The data source used in this run (*See the section below on adding model sources if you want to use something other than CFSv2*)
+  * run_geogrid: A 1/0 flag used to designate if the geogrid process needs to be run, if you are using the same grid space, run geogrid once and copy the resulting geo_em file to the run_files/ folder, then set the parameter to 0, otherwise geogrid will run.
+  * num_geogrid_nodes: The number of CPU nodes to use in the geogrid process
+  * num_geogrid_processors: The number of CPU processors to use in the geogrid process
+  * geogrid_walltime: The maximum wall time to be required by the geogrid process
+  * num_metgrid_nodes: The number of CPU nodes to use in the metgrid process
+  * num_metgrid_processors: The number of CPU processors to use in the metgrid process
+  * metgrid_walltime: The maximum wall time to be required by the metgrid process
+  * num_real_nodes: The number of CPU nodes to use in the real.exe process
+  * num_real_processors: The number of CPU processors to use in the real.exe process
+  * real_walltime: The maximum wall time to be required by the real.exe process
+  * num_wrf_nodes: The number of CPU nodes to use in the WRF process
+  * num_wrf_processors: The number of CPU processors to use in the WRF process
+  * wrf_walltime: The maximum wall time to be required by the WRF process  
+  
 ### Adding Model Sources ###
 This script package was writted for the CFSv2 forecast system as an input for the WRF model, however the script package is dynamic enough to allow for quick additions of other model sources.
 
