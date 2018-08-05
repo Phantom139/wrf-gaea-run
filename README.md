@@ -19,11 +19,49 @@ Additionally, you will need to define a directory inside the repository director
   * The WRF Run Files and Tables located in the /run/ folder of your WRF installation
   
 ### Control.txt ###
+control.txt is a newline terminated text file which contains important parameters needed to run this script. The control.txt file MUST be located in the same directory as the wrf_gaea.py script file in order for the script to run. The format of this file is simple:
+
+Each command line is split into two breaks:
+**variable value**
+
+EX: myvar 12
+Would store the value of 12 in a parameter named myvar for the file. Any line that begins with a pound sign (#) is treated as a comment line. These variables are all defined in the AppSettings() class, but for simplicity, here is a list of the parameters accepted by control.txt
 
 ### Adding Model Sources ###
 This script package was writted for the CFSv2 forecast system as an input for the WRF model, however the script package is dynamic enough to allow for quick additions of other model sources.
 
+First, you will need to obtain the VTable files for your specific model data source and include these in the directory.
 
+Second, you'll need to add some basic model information to the *ModelDataParameters* class instance, located near the top of the wrf_gaea.py file. A dictionary is contained in this class with the following format:
+```python
+			"CFSv2": {
+				"VTable": ["Vtable.CFSv2.3D", "Vtable.CFSv2.FLX"],
+				"FileExtentions": ["3D", "FLX"],
+				"FGExt": "\'3D\', \'FLX\'",
+				"HourDelta": 6,
+			},
+```
+The name of the dictionary instance should ideally be the model data source. *VTable* is a list instance containing all VTable files contained in the head folder used by this model data source. *FileExtentions* is a list of all file extensions used by the incoming GRIB data, for specific models (IE: CFSv2), multiple files are needed, hence this allows it. *FGExt* is a parameter applied by namelist.wps for the extensions of the ungribbed files used by the metgrid process, make this similar to the GRIB files. Finally *HourDelta* is the amount of hours separating each incoming GRIB file.
 
+Next, scroll down to the *ModelData* class and find the pooled_download section. You will need to incorporate an additional if/elif clause for your new model that downloads the model data, here is a sample:
+
+```python
+		if(model == "CFSv2"):
+			prs_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_pgbf/"
+			flx_lnk = "https://nomads.ncdc.noaa.gov/modeldata/cfsv2_forecast_6-hourly_9mon_flxf/"
+			strTime = str(self.startTime.strftime('%Y%m%d%H'))
+			
+			pgrb2link = prs_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/pgbf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
+			sgrb2link = flx_lnk + strTime[0:4] + '/' + strTime[0:6] + '/' + strTime[0:8] + '/' + strTime + "/flxf" + timeObject.strftime('%Y%m%d%H') + ".01." + strTime + ".grb2"
+			pgrb2writ = self.dataDir + '/' + strTime + "/3D_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+			sgrb2writ = self.dataDir + '/' + strTime + "/flx_" + timeObject.strftime('%Y%m%d%H') + ".grb2"
+			if not os.path.isfile(pgrb2writ):
+				os.system("wget " + pgrb2link + " -O " + pgrb2writ)
+			if not os.path.isfile(sgrb2writ):
+				os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
+```
+
+Finally, change the modeldata parameter in control.txt to match your model source.
+				
 ### Contact Info ###
 Any questions regarding the script package can be sent to Robert C. Fritzen (rfritzen1@niu.edu). In-person questions can be done from my office in Davis Hall, room 202.
