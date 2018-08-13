@@ -39,3 +39,12 @@ num_wrf_nodes 8
 num_wrf_processors 12
 wrf_walltime 48:00:00
 # Post-Processing Parameters
+run_postprocessing 1
+# - If using UPP (Unipost) with GRADS, use the below
+post_run_unipost 1
+unipost_out grib2
+num_unipost_nodes 2
+num_unipost_processors 5
+unipost_walltime 06:00:00
+# - If using Python, use the below
+post_run_python 0

@@ -45,7 +45,7 @@ class AppSettings():
 	myUserID = None
 	
 	def loadSettings(self):
-		with open("control.txt") as f: 
+		with open("../control.txt") as f: 
 			for line in f: 
 				#To-Do: This can be simplified to a single if block, but for the time being, I'm going to leave it as is
 				if not line.split():
@@ -305,8 +305,7 @@ class JobSteps:
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
 		#Copy important files to the directory
-		os.system("cp geo_em.d01.nc " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
-		os.system("cp run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		os.system("cp ../run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		#Move the generated files to the run directory		
 		os.system("mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		os.system("mv geogrid.job " + self.wrfDir + '/' + self.startTime[0:8])
@@ -320,8 +319,8 @@ class JobSteps:
 	
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
-		os.system("cp Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
-		os.system("cp namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("cp ../vtables/Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
+		os.system("mv namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
 		mParms = self.modelParms.fetch()
 		with cd(self.wrfDir + '/' + self.startTime[0:8]):
 			with open("ungrib.csh", 'w') as target_file:
@@ -431,7 +430,22 @@ class JobSteps:
 		print("run_wrf(): Failed to enter run directory")
 		return False			
 
-#class Postprocessing_Steps:
+class Postprocessing_Steps:
+	aSet = None
+	modelParms = None
+	startTime = ""
+	wrfDir = ""
+
+	def __init__(self, settings, modelParms):
+		self.aSet = settings
+		self.modelParms = modelParms
+		self.wrfDir = settings.fetch("wrfdir")
+		self.startTime = settings.fetch("starttime")
+		
+		self.prepare_postprocessing()
+		
+	def prepare_postprocessing(self):
+		
 
 class PostRunCleanup():
 	sObj = None
@@ -539,12 +553,12 @@ class Application():
 		print(" 3. Generating run files from templates")
 		tWrite = Template_Writer(settings, modelParms)
 		for ext in mParms["FileExtentions"]:
-			tWrite.generateTemplatedFile("namelist.wps.template", "namelist.wps." + ext, extraKeys = {"[ungrib_prefix]": ext, "[fg_name]": mParms["FGExt"]})
-		tWrite.generateTemplatedFile("namelist.input.template", "namelist.input")
-		tWrite.generateTemplatedFile("geogrid.job.template", "geogrid.job")
-		tWrite.generateTemplatedFile("metgrid.job.template", "metgrid.job")
-		tWrite.generateTemplatedFile("real.job.template", "real.job")
-		tWrite.generateTemplatedFile("wrf.job.template", "wrf.job")
+			tWrite.generateTemplatedFile("../templates/namelist.wps.template", "namelist.wps." + ext, extraKeys = {"[ungrib_prefix]": ext, "[fg_name]": mParms["FGExt"]})
+		tWrite.generateTemplatedFile("../templates/namelist.input.template", "namelist.input")
+		tWrite.generateTemplatedFile("../templates/geogrid.job.template", "geogrid.job")
+		tWrite.generateTemplatedFile("../templates/metgrid.job.template", "metgrid.job")
+		tWrite.generateTemplatedFile("../templates/real.job.template", "real.job")
+		tWrite.generateTemplatedFile("../templates/wrf.job.template", "wrf.job")
 		print(" 3. Done")
 		#Step 4: Run the WRF steps
 		print(" 4. Run WRF Steps")
@@ -573,9 +587,12 @@ class Application():
 		print("  4.c. Done")
 		print(" 4. Done")
 		#Step 5: Run postprocessing steps
-		print(" 5. Running post-processing")
-		
-		print(" 5. Done")
+		if(settings.fetch("run_postprocessing") == '1'):
+			print(" 5. Running post-processing")
+			post = Postprocessing_Steps(settings, modelParms)
+			print(" 5. Done")
+		else:
+			print(" 5. Post-processing flag disabled, skipping step")
 		#Step 6: Cleanup
 		print(" 6. Cleaning Temporary Files")
 		prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False, cleanModelData = True)
