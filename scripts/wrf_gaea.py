@@ -445,6 +445,7 @@ class Postprocessing_Steps:
 		self.prepare_postprocessing()
 		
 	def prepare_postprocessing(self):
+		if(self.aSet.fetch("post_run_unipost") == '1'):
 		
 
 class PostRunCleanup():
