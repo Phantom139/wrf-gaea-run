@@ -6,6 +6,7 @@
 
 import datetime
 import time
+import os
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
 class AppSettings():
