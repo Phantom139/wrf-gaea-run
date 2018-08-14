@@ -11,6 +11,7 @@ from ModelData import *
 from Cleanup import *
 from Template import *
 from Jobs import *
+from Tools import *
 
 # Application: Class responsible for running the program steps.
 class Application():			
@@ -26,8 +27,8 @@ class Application():
 		prc = Cleanup.PostRunCleanup(settings)
 		prc.performClean()
 		mParms = modelParms.fetch()
-		os.system("mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8])
-		os.system("mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + "/output")		
+		Tools.popen(settings, "mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8])
+		Tools.popen(settings, "mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + "/output")		
 		print(" 1. Done.")
 		#Step 2: Download Data Files
 		print(" 2. Downloading Model Data Files")
