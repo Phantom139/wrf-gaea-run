@@ -26,10 +26,10 @@ class cd:
 class popen:
 	def __init__(self, settings, command):
 		if(settings.fetch("debugmode") == '1'):
-			print("D: " + self.command)
+			print("D: " + command)
 		else:
-			command = os.popen(command)
-			self.stored = command.read()
+			runCmd = os.popen(command)
+			self.stored = runCmd.read()
 			
 	def fetch(self):
 		return self.stored
