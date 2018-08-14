@@ -20,7 +20,7 @@ class Application():
 		#Step 1: Load program settings
 		print(" 1. Loading program settings, Performing pre-run directory creations")
 		settings = ApplicationSettings.AppSettings()
-		modelParms = ModelData.ModelDataParameters(settings, settings.fetch("modeldata"))
+		modelParms = ModelData.ModelDataParameters(settings.fetch("modeldata"))
 		if not modelParms.validModel():
 			sys.exit("Program failed at step 1, model data source: " + settings.fetch("modeldata") + ", is not defined in the program.")
 		print(" - Settings loaded, model data source " + settings.fetch("modeldata") + " applied to the program.")
