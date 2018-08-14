@@ -9,7 +9,7 @@ import time
 import os
 import sys
 from multiprocessing.pool import ThreadPool
-from ApplicationSettings import *
+import ApplicationSettings
 
 # ModelDataParameters: Mini class instance that stores information about various WRF data
 class ModelDataParameters():

@@ -4,7 +4,7 @@
 #
 # Contains methods used to modify and save the templated files
 
-from ApplicationSettings import *
+import ApplicationSettings
 
 # Template_Writer: Class responsible for taking the template files and saving the use files with parameters set
 class Template_Writer:

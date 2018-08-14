@@ -6,12 +6,12 @@
 
 import sys
 import os
-from ApplicationSettings import *
-from ModelData import *
-from Cleanup import *
-from Template import *
-from Jobs import *
-from Tools import *
+import ApplicationSettings
+import ModelData
+import Cleanup
+import Template
+import Jobs
+import Tools
 
 # Application: Class responsible for running the program steps.
 class Application():			

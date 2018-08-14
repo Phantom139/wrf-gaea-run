@@ -6,8 +6,8 @@
 
 import sys
 import os
-from ApplicationSettings import *
-from Tools import *
+import ApplicationSettings
+import Tools
 
 class PostRunCleanup():
 	sObj = None

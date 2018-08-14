@@ -10,10 +10,10 @@ import os.path
 import datetime
 import time
 from multiprocessing.pool import ThreadPool
-from ApplicationSettings import *
-from ModelData import *
-from Tools import *
-from Wait import *
+import ApplicationSettings
+import ModelData
+import Tools
+import Wait
 
 # JobSteps: Class responsible for handling the steps that involve job submission and checkup
 class JobSteps:
