@@ -29,6 +29,7 @@ class Application():
 		mParms = modelParms.fetch()
 		Tools.popen(settings, "mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8])
 		Tools.popen(settings, "mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + "/output")		
+		Tools.popen(settings, "mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + "/postprd")	
 		print(" 1. Done.")
 		#Step 2: Download Data Files
 		print(" 2. Downloading Model Data Files")

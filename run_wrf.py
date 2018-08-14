@@ -4,8 +4,10 @@
 #
 # Python script to execute the wrf_gaea.py script with options
 
+import scripts.Tools as Tools
 import sys
 import os
+import datetime
 
 # Application: Class responsible for running the program steps.
 class Application():			
@@ -13,7 +15,10 @@ class Application():
 		#NOTE: If you're looking to automate (CRON) jobs, use this portion of the code to update control.txt
 		
 		#Run the script
-		os.system("nohup scripts/Application.py > wrf_gaea.log")
+		curTime = datetime.date.today().strftime("%B%d%Y-%H%M%S")
+		with Tools.cd("scripts/"):
+			os.system("nohup Application.py > wrf_gaea_run_" + str(curTime) + ".log")
+			mv("wrf_gaea_run_" + str(curTime) + ".log ../logs/")
 
 if __name__ == "__main__":
 	pInst = Application()

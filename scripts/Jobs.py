@@ -146,7 +146,6 @@ class JobSteps:
 				except Wait.TimeExpiredException:
 					sys.exit("wrf.exe job not completed, abort.")
 				#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
-				#Now wait for the output file to be completed
 				try:
 					secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS COMPLETE WRF", "retCode": 1},
 								  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
@@ -175,9 +174,24 @@ class Postprocessing_Steps:
 		self.modelParms = modelParms
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
+		self.postDir = self.wrfDir + '/' + self.startTime[0:8] + "/postprd/"
 		
 		self.prepare_postprocessing()
 		
+	# This method is mainly used for UPP post-processing as it requires some links to be established prior to running a Unipost.exe job. Python is skipped
 	def prepare_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
-			pass
+			print("  5.a. UPP Flagged Active")
+			uppDir = os.path.realpath(__file__) + "../post/UPP/"
+			if(self.aSet.fetch("unipost_out") == "grib"):
+				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
+			elif(self.aSet.fetch("unipost_out") == "grib2"):
+			else:
+				print("  5.a. Error: Neither GRIB or GRIB2 is defined for UPP output processing, please modify control.txt, aborting")
+				return False
+		elif(self.aSet.fetch("post_run_python") == '1'):
+			print("  5.a. Python Flagged Active")
+			retrun True
+		else:
+			print("  5. Error: No post-processing methods selected, please make changes to control.txt, aborting")
+			return False
