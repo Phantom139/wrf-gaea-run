@@ -19,7 +19,7 @@ datadir /data1/climlab/model_data
 wrfdir /data1/climlab/runs
 wrfmodule wrf/wrf-3.9.1
 modeldata CFSv2
-debugmode 0
+debugmode 1
 # Geogrid Parameters
 run_geogrid 0 #run_geogrid: Flag this parameter as 1 if the grid has been updated, otherwise geogrid can be skipped to use the existing grid
 num_geogrid_nodes 2
