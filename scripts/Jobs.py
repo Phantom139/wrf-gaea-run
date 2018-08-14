@@ -8,6 +8,7 @@ import sys
 import os
 import os.path
 import datetime
+import glob
 import time
 from multiprocessing.pool import ThreadPool
 import ApplicationSettings
@@ -176,7 +177,8 @@ class Postprocessing_Steps:
 		self.startTime = settings.fetch("starttime")
 		self.postDir = self.wrfDir + '/' + self.startTime[0:8] + "/postprd/"
 		
-		self.prepare_postprocessing()
+		if(self.prepare_postprocessing() == False):
+			sys.exit(" 5. Failed to prepare post-processing, aborting script")
 		
 	# This method is mainly used for UPP post-processing as it requires some links to be established prior to running a Unipost.exe job. Python is skipped
 	def prepare_postprocessing(self):
@@ -186,12 +188,63 @@ class Postprocessing_Steps:
 			if(self.aSet.fetch("unipost_out") == "grib"):
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
 			elif(self.aSet.fetch("unipost_out") == "grib2"):
+				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/postcntrl.xml " + self.postDir + "postcntrl.xml")
+				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/post_avblflds.xml " + self.postDir + "post_avblflds.xml")
+				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/params_grib2_tbl_new " + self.postDir + "params_grib2_tbl_new")
 			else:
 				print("  5.a. Error: Neither GRIB or GRIB2 is defined for UPP output processing, please modify control.txt, aborting")
 				return False
+			
+			Tools.popen(self.aSet, "ln -sf " + uppDir + "scripts/cbar.gs " + self.postDir)
+			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/nam_micro_lookup.dat " + self.postDir)
+			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/hires_micro_lookup.dat " + self.postDir)
+			Tools.popen(self.aSet, "ln -fs " + uppDir + "includes/* " + self.postDir)
+			print("  5.a. Done")
+			return True
 		elif(self.aSet.fetch("post_run_python") == '1'):
 			print("  5.a. Python Flagged Active")
+			print("  5.a. Done")
 			retrun True
 		else:
 			print("  5. Error: No post-processing methods selected, please make changes to control.txt, aborting")
 			return False
+			
+	def run_postprocessing(self):
+		if(self.aSet.fetch("post_run_unipost") == '1'):
+			# To run unipost, we gather all of the wrfout files first into a list, and then iterate through each, running a unipost job for each file
+			fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
+			print("  5.b. Running UPP on " + str(len(fList)) + " wrfout files")
+			with Tools.cd(self.postDir):
+				for iFile in fList:
+					dNum = iFile[-23:3]
+					year = iFile[-19:4]
+					month = iFile[-14:2]
+					day = iFile[-11:2]
+					hour = iFile[-8:2]
+					minute = iFile[-5:2]
+					second = iFile[-2:]
+					if(self.aSet.fetch("unipost_out") == "grib"):
+						Tools.popen(self.aSet, "cat > itag <<EOF\n" 
+						                     + iFile + '\n'
+											 + "netcdf\n"
+											 + str(year) + "-" + str(month) + "-" + str(day) + "_" 
+											 + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
+											 + "NCAR\0")
+					elif(self.aSet.fetch("unipost_out") == "grib2"):
+						Tools.popen(self.aSet, "cat > itag <<EOF\n" 
+						                     + iFile + '\n'
+											 + "netcdf\n"
+											 + "grib2\n"
+											 + str(year) + "-" + str(month) + "-" + str(day) + "_" 
+											 + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
+											 + "NCAR\0")					
+					else:
+						#You should never end up here...
+						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
+					# Create the job file, then submit it.
+					
+			# Once the loop is complete, we run a test command for a file-count on the wrfprs files. Once matched, we test the files
+		elif(self.aSet.fetch("post_run_python") == '1'):
+		else:
+			sys.exit("Error: run_postprocessing() called without a mode flagged, abort.")
+		

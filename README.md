@@ -19,10 +19,11 @@ This git repository contains the following subdirectories:
 	* Template.py: Classes and methods used to modify and write template files
 	* Tools.py: Extra classes and methods used as support tools for the program
 	* Wait.py: Classes and methods used to hold the main thread until conditions are met
+	* **__init__.py**: Empty text file used to define **scripts** as a module to be used by run_wrf.py
   * templates: Template text files for job scripts and namelist files used by WRF and jobs to be submitted to clusters, you should not edit these files.
   * vtables: WRF Vtable files for various model data sources, CFSv2 tables are included in this package.
 In this directory:
-  * run_wrf.py: The primary run process which runs wrf_gaea.py in the background so execution via PuTTy can continue even after a session is disconnected
+  * run_wrf.py: The primary run process which runs Application.py in the background so execution via PuTTy can continue even after a session is disconnected
   * control.txt: A newline terminated text file that sets various parameters on the script (See below section on control.txt)
   * README.md: You're reading it!
   
@@ -32,7 +33,7 @@ Additionally, you will need to define a directory inside the repository director
   * If you are not planning on running the geogrid process (See run_geogrid below), place your geo_em file(s) in the same run files folder
   
 ### Control.txt ###
-control.txt is a newline terminated text file which contains important parameters needed to run this script. The control.txt file MUST be located in the same directory as the wrf_gaea.py script file in order for the script to run. The format of this file is simple:
+control.txt is a newline terminated text file which contains important parameters needed to run this script. The control.txt file MUST be located in the same directory as the run_wrf.py script file in order for the script to run. The format of this file is simple:
 
 Each command line is split into two breaks:
 
@@ -67,7 +68,7 @@ Would store the value of 12 in a parameter named myvar for the file. Any line th
   * wrf_walltime: The maximum wall time to be required by the WRF process  
   
 ### Adding Model Sources ###
-This script package was writted for the CFSv2 forecast system as an input for the WRF model, however the script package is dynamic enough to allow for quick additions of other model sources.
+This script package was written for the CFSv2 forecast system as an input for the WRF model, however the script package is dynamic enough to allow for quick additions of other model sources.
 
 First, you will need to obtain the VTable files for your specific model data source and include these in the directory.
 
