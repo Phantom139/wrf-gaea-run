@@ -24,20 +24,12 @@ class cd:
 		
 #popen: A wrapped call to the os.popen method to test for the debugging flag.
 class popen:
-	def __init__(self, settings, command, returnOutput = False):
-		self.aSet = settings
-		self.command = command
-		self.returnOutput = returnOutput
-		
-	def __enter__(self):
-		if(self.aSet.fetch("debugmode") == '1'):
+	def __init__(self, settings, command):
+		if(settings.fetch("debugmode") == '1'):
 			print("D: " + self.command)
 		else:
-			command = os.popen(self.command)
-			stored = command.read()
-			self.stored = None
-			if(self.returnOutput == True):
-				self.stored = stored
+			command = os.popen(command)
+			self.stored = command.read()
 			
-	def __exit(self, etype, value, traceback):
-		return isinstance(value, TypeError)
+	def fetch(self):
+		return self.stored
