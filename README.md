@@ -6,17 +6,30 @@
 This python script package automates the entire WRF process for use on cluster based computers, such as the Gaea computer provided for use by the Computer Science department at Northern Illinois University. This is a fully self-contained script package that handles the tasks of obtaining the data, running the pre-processing executables, the WRF process, and forking the task to post-processing scripts for visualization.
 
 ### Contents ###
-This git repository contains the following:
-  * wrf_gaea.py: The primary script file containing the various methods used by the program
+This git repository contains the following subdirectories:
+  * post: The folder containing the two post-processing methodologies used by this script.
+    * UPP: The Unified Post-Processor 3.1 package scripts, support for both GRIB/GRIB2 to GrADS
+	* Python: A plotting package based off of the wrf-python library
+  * scripts: The python scripts used by this package
+    * Application.py: The script package containing the execution path of the program
+	* ApplicationSettings.py: Classes used to apply program settings via control.txt
+	* Cleanup.py: Classes and methods used to clean output files and logs after program completion
+	* Jobs.py: Classes and methods used to submit and monitor WRF jobs to clusters
+	* ModelData.py: Classes and methods used to manage various data sources for the model
+	* Template.py: Classes and methods used to modify and write template files
+	* Tools.py: Extra classes and methods used as support tools for the program
+	* Wait.py: Classes and methods used to hold the main thread until conditions are met
+  * templates: Template text files for job scripts and namelist files used by WRF and jobs to be submitted to clusters, you should not edit these files.
+  * vtables: WRF Vtable files for various model data sources, CFSv2 tables are included in this package.
+In this directory:
   * run_wrf.py: The primary run process which runs wrf_gaea.py in the background so execution via PuTTy can continue even after a session is disconnected
   * control.txt: A newline terminated text file that sets various parameters on the script (See below section on control.txt)
-  * Vtable.CFSv2.*: The Vtable files needed by WRF for specific model data, in this case, the CFSv2 forecast system
-  * Job Templates: The job template files which are used and written on by the script file, for the most part, these should be left alone unless specific clusters require different command calls or paramters
   * README.md: You're reading it!
   
 Additionally, you will need to define a directory inside the repository directory called run_files, and place the following inside:
   * The WRF executables (wrf.exe, real.exe, tc.exe)
   * The WRF Run Files and Tables located in the /run/ folder of your WRF installation
+  * If you are not planning on running the geogrid process (See run_geogrid below), place your geo_em file(s) in the same run files folder
   
 ### Control.txt ###
 control.txt is a newline terminated text file which contains important parameters needed to run this script. The control.txt file MUST be located in the same directory as the wrf_gaea.py script file in order for the script to run. The format of this file is simple:
@@ -29,6 +42,7 @@ EX: myvar 12
 
 Would store the value of 12 in a parameter named myvar for the file. Any line that begins with a pound sign (#) is treated as a comment line. These variables are all defined in the AppSettings() class, but for simplicity, here is a list of the parameters accepted by control.txt
 
+  * debugmode: Setting this variable to 1 will not run any commands, but instead print the commands to the console for debugging / testing purposes. Typically, leave this as 0.
   * starttime: The initialization time for the first forecast hour, the format is YYYYMMDDHH
   * rundays: The number of days to run the model after initialization
   * runhours: The number of hours to run in addition to rundays (IE: total = 24*rundays + runhours)
