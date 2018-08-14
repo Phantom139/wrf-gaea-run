@@ -49,3 +49,8 @@ Temporary Items
 # Repository Files
 *.pyc
 run_files/*
+scripts/geogrid.job
+scripts/metgrid.job
+scripts/namelist.*
+scripts/real.job
+scripts/wrf.job
