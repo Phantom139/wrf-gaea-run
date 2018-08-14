@@ -47,5 +47,5 @@ Temporary Items
 .apdisk
 
 # Repository Files
-*pyc
+*.pyc
 run_files/*
