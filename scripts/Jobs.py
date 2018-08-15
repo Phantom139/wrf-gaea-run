@@ -222,7 +222,7 @@ class Postprocessing_Steps:
 			with Tools.cd(self.postDir):
 				upp_job_contents = ""
 				for iFile in fList:
-					dNum = iFile[-23:-21]
+					dNum = iFile[-23:-20]
 					year = iFile[-19:-15]
 					month = iFile[-14:-12]
 					day = iFile[-11:-9]
@@ -233,9 +233,9 @@ class Postprocessing_Steps:
 					print(logName)
 					catCMD = ""
 					if(self.aSet.fetch("unipost_out") == "grib"):
-						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\0"
+						catCMD = "cat > itag <<" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\0"
 					elif(self.aSet.fetch("unipost_out") == "grib2"):
-						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + "grib2\n" + str(year) + "-" + str(month) + "-" + str(day) + "_"  + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\0"					
+						catCMD = "cat > itag <<" + iFile + '\n' + "netcdf\n" + "grib2\n" + str(year) + "-" + str(month) + "-" + str(day) + "_"  + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\0"					
 					else:
 						#You should never end up here...
 						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
