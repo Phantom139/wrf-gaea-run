@@ -19,7 +19,7 @@ datadir /data1/climlab/model_data
 wrfdir /data1/climlab/runs
 wrfmodule wrf/wrf-3.9.1
 modeldata CFSv2
-debugmode 1
+debugmode 0
 # Geogrid Parameters
 run_geogrid 0 #run_geogrid: Flag this parameter as 1 if the grid has been updated, otherwise geogrid can be skipped to use the existing grid
 num_geogrid_nodes 2
@@ -44,8 +44,8 @@ run_postprocessing 1
 # - If using UPP (Unipost) with GRADS, use the below
 post_run_unipost 1
 unipost_out grib2
-num_upp_nodes 2
-num_upp_processors 5
+num_upp_nodes 4
+num_upp_processors 8
 upp_walltime 06:00:00
 # - If using Python, use the below
 post_run_python 0

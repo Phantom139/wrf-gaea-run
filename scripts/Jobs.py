@@ -211,48 +211,84 @@ class Postprocessing_Steps:
 			
 	def run_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
-			# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
-			tWrite = Template.Template_Writer(self.aSet)
-			curDir = os.path.dirname(os.path.abspath(__file__)) 
-			temDir = curDir[:curDir.rfind('/')] + "/templates/"
-			uppDir = curDir[:curDir.rfind('/')] + "/post/UPP/"
-			uppNodes = self.aSet.fetch("num_upp_nodes")
-			uppProcs = self.aSet.fetch("num_upp_processors")
-			total = int(uppNodes) * int(uppProcs)
-			fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
-			print("  5.b. Running UPP on " + str(len(fList)) + " wrfout files")
-			with Tools.cd(self.postDir):
-				upp_job_contents = ""
-				for iFile in fList:
-					dNum = iFile[-23:-20]
-					year = iFile[-19:-15]
-					month = iFile[-14:-12]
-					day = iFile[-11:-9]
-					hour = iFile[-8:-6]
-					minute = iFile[-5:-3]
-					second = iFile[-2:]
-					logName = "unipost_log_" + dNum + "_" + year + "_" + month + "_" + day + "_" + hour + ":" + minute + ":" + second + ".log"
-					print(logName)
-					catCMD = ""
-					if(self.aSet.fetch("unipost_out") == "grib"):
-						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\nEOF"
-					elif(self.aSet.fetch("unipost_out") == "grib2"):
-						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + "grib2\n" + str(year) + "-" + str(month) + "-" + str(day) + "_"  + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\nEOF"					
-					else:
-						#You should never end up here...
-						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
-					upp_job_contents += catCMD
-					upp_job_contents += '\n' + "rm fort.*" + '\n' + "ln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14"
-					upp_job_contents += "\n" + "mpirun -np " + str(total) + " unipost.exe > " + logName + '\n'
-					# Create the job file, then submit it.
-					tWrite.generateTemplatedFile(temDir + "upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
-				# Once the file has been written, submit the job.
-				Tools.popen(self.aSet, "qsub upp.job")
-				# Wait for testing...
-				return True
+			return self.run_postprocessing_upp()
 		elif(self.aSet.fetch("post_run_python") == '1'):
 			return True
 		else:
 			sys.exit("Error: run_postprocessing() called without a mode flagged, abort.")
 			return False
 		
+	def run_postprocessing_upp(self):
+		# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
+		tWrite = Template.Template_Writer(self.aSet)
+		curDir = os.path.dirname(os.path.abspath(__file__)) 
+		temDir = curDir[:curDir.rfind('/')] + "/templates/"
+		uppDir = curDir[:curDir.rfind('/')] + "/post/UPP/"
+		uppNodes = self.aSet.fetch("num_upp_nodes")
+		uppProcs = self.aSet.fetch("num_upp_processors")
+		total = int(uppNodes) * int(uppProcs)
+		fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
+		fileCount = len(fList)
+		fLogs = []
+		print("  5.b. Running UPP on " + str(fileCount) + " wrfout files")
+		with Tools.cd(self.postDir):
+			upp_job_contents = ""
+			for iFile in fList:
+				dNum = iFile[-23:-20]
+				year = iFile[-19:-15]
+				month = iFile[-14:-12]
+				day = iFile[-11:-9]
+				hour = iFile[-8:-6]
+				minute = iFile[-5:-3]
+				second = iFile[-2:]
+				logName = "unipost_log_" + dNum + "_" + year + "_" + month + "_" + day + "_" + hour + ":" + minute + ":" + second + ".log"
+				fLogs.append(logName)
+				catCMD = ""
+				if(self.aSet.fetch("unipost_out") == "grib"):
+					catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\nEOF"
+				elif(self.aSet.fetch("unipost_out") == "grib2"):
+					catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + "grib2\n" + str(year) + "-" + str(month) + "-" + str(day) + "_"  + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\nEOF"					
+				else:
+					#You should never end up here...
+					sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
+				upp_job_contents += catCMD
+				upp_job_contents += '\n' + "rm fort.*" + '\n' + "ln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14"
+				upp_job_contents += "\n" + "mpirun -np " + str(total) + " unipost.exe > " + logName + '\n'
+				# Create the job file, then submit it.
+				tWrite.generateTemplatedFile(temDir + "upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
+			# Once the file has been written, submit the job.
+			Tools.popen(self.aSet, "qsub upp.job")
+			# Wait for all logs to flag as job complete
+			for iFile in fLogs:
+				try:
+					wCond = [{"waitCommand": "tail -n 2 " + iFile, "contains": "PROGRAM UNIFIED_POST HAS ENDED", "retCode": 1},
+							  {"waitCommand": "tail -n 1 " + iFile, "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 " + iFile, "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 " + iFile, "contains": "error", "retCode": 2},]
+					waitCond = Wait.Wait(wCond, timeDelay = 60)
+					wRC = waitCond.hold()
+					if wRC == 2:
+						return False			
+				except Wait.TimeExpiredException:
+					sys.exit("unipost.exe job not completed, abort.")
+			# Run a quick ls -l test to ensure the number of files present matches what we're expecting
+			fCountTest = Tools.popen(self.aSet, "ls -l WRFPRS*")
+			cmdTxt = fCountTest.fetch()
+			strCount = fCountTest[fCountTest.rfind('F'):]
+			if(not (int(strCount)) == (fileCount - 1)):
+				print("  5.b. Error: Number of expected files (" + fileCount + ") does not match actual count (" + int(strCount) + 1 + ").")
+				return False
+			# Now that we have our PRS files, we can convert those to CTL files
+			if(self.aSet.fetch("unipost_out") == "grib"):
+				for fHour in range(0, fileCount):
+					fStr = "0" + str(fHour) if fHour < 10 else str(fHour)
+					inFile = "WRFPRS.GrbF" + fStr
+					Tools.popen(self.aSet, uppDir + "scripts/grib2ctl.pl " + inFile + " > wrfprs_f" + fStr + ".ctl")
+			elif(self.aSet.fetch("unipost_out") == "grib2"):
+				for fHour in range(0, fileCount):
+					fStr = "0" + str(fHour) if fHour < 10 else str(fHour)
+					inFile = "WRFPRS.GrbF" + fStr
+					Tools.popen(self.aSet, uppDir + "scripts/g2ctl.pl " + inFile + " > wrfprs_f" + fStr + ".ctl")
+			#To-Do Note: Fork off to GrADS here...
+			
+			return True

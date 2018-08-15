@@ -65,7 +65,14 @@ Would store the value of 12 in a parameter named myvar for the file. Any line th
   * real_walltime: The maximum wall time to be required by the real.exe process
   * num_wrf_nodes: The number of CPU nodes to use in the WRF process
   * num_wrf_processors: The number of CPU processors to use in the WRF process
-  * wrf_walltime: The maximum wall time to be required by the WRF process  
+  * wrf_walltime: The maximum wall time to be required by the WRF process 
+  * run_postprocessing: This flag enables post-processing after the WRF run is completed. This package supports UPP and Python  
+  * post_run_unipost: Set this flag to 1 if you wish to use UPP to post-process
+  * post_run_python: Set this flag to 1 if you wish to use Python to post-process
+  * unipost_out: A textual flag to indicate whether UPP should export to GRIB or GRIB2, the two choices are grib and grib2
+  * num_upp_nodes: The number of CPU nodes to use in the UPP process
+  * num_upp_processors: The number of CPU processors to use in the UPP process
+  * upp_walltime: The maximum wall time to be required by the UPP process
   
 ### Adding Model Sources ###
 This script package was written for the CFSv2 forecast system as an input for the WRF model, however the script package is dynamic enough to allow for quick additions of other model sources.
