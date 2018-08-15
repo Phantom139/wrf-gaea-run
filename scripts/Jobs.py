@@ -228,20 +228,9 @@ class Postprocessing_Steps:
 					logName = "unipost_log_" + dNum + "_" + year + "_" + month + "_" + day + "_" + hour + ":" + minute + ":" + second + ".log"
 					catCMD = ""
 					if(self.aSet.fetch("unipost_out") == "grib"):
-						catCMD = "cat > itag <<EOF\n" 
-						       + iFile + '\n'
-							   + "netcdf\n"
-							   + str(year) + "-" + str(month) + "-" + str(day) + "_" 
-							   + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
-							   + "NCAR\0"
+						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\0"
 					elif(self.aSet.fetch("unipost_out") == "grib2"):
-						catCMD = "cat > itag <<EOF\n" 
-						       + iFile + '\n'
-							   + "netcdf\n"
-							   + "grib2\n"
-							   + str(year) + "-" + str(month) + "-" + str(day) + "_" 
-							   + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
-							   + "NCAR\0"					
+						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + "grib2\n" + str(year) + "-" + str(month) + "-" + str(day) + "_"  + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\0"					
 					else:
 						#You should never end up here...
 						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
