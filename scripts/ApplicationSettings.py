@@ -19,7 +19,9 @@ class AppSettings():
 	myUserID = None
 	
 	def loadSettings(self):
-		with open("../control.txt") as f: 
+		curDir = os.path.dirname(os.path.abspath(__file__))
+		controlFile = curDir[:curDir.rfind('/')] + "control.txt"
+		with open(controlFile) as f: 
 			for line in f: 
 				#To-Do: This can be simplified to a single if block, but for the time being, I'm going to leave it as is
 				if not line.split():
