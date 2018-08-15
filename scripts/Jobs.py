@@ -213,7 +213,8 @@ class Postprocessing_Steps:
 			# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
 			tWrite = Template.Template_Writer(self.aSet)
 			curDir = os.path.dirname(os.path.abspath(__file__)) 
-			temDir = curDir[:curDir.rfind('/')] + "/templates/"			
+			temDir = curDir[:curDir.rfind('/')] + "/templates/"
+			uppDir = curDir[:curDir.rfind('/')] + "/post/UPP/"
 			uppNodes = self.aSet.fetch("num_upp_nodes")
 			uppProcs = self.aSet.fetch("num_upp_processors")
 			total = int(uppNodes) * int(uppProcs)
@@ -241,7 +242,7 @@ class Postprocessing_Steps:
 						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
 					upp_job_contents += catCMD
 					upp_job_contents += "\n" + "mpirun -np " + str(total) + " unipost.exe > " + logName
-					upp_job_contents += "\n\n"
+					upp_job_contents += '\n' + "rm fort*" + '\n' + "ln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14" + '\n' 
 					# Create the job file, then submit it.
 					tWrite.generateTemplatedFile(temDir + "upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
 				# Once the file has been written, submit the job.
