@@ -29,7 +29,7 @@ class popen:
 		if(settings.fetch("debugmode") == '1'):
 			print("D: " + command)
 		else:
-			runCmd = subprocess.popen(command, shell=True).wait()
+			runCmd = subprocess.Popen(command, shell=True).wait()
 			self.stored = runCmd.read()
 			
 	def fetch(self):
