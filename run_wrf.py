@@ -17,9 +17,8 @@ class Application():
 		#Run the script
 		curTime = datetime.date.today().strftime("%B%d%Y-%H%M%S")
 		curDir = os.path.dirname(os.path.abspath(__file__)) 
-		with Tools.cd(curDir + "/scripts/"):
-			os.system("nohup Application.py > wrf_gaea_run_" + str(curTime) + ".log")
-			mv("wrf_gaea_run_" + str(curTime) + ".log ../logs/")
+		os.system("nohup " + curDir + "/scripts/Application.py > wrf_gaea_run_" + str(curTime) + ".log")
+		mv("wrf_gaea_run_" + str(curTime) + ".log ../logs/")
 
 if __name__ == "__main__":
 	pInst = Application()
