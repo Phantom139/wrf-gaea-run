@@ -8,6 +8,7 @@ import datetime
 import time
 import sys
 import os
+import subprocess
 
 #TimeExpiredException: Custom exception that is thrown when the Wait() command expires
 class TimeExpiredException(Exception):
@@ -34,7 +35,12 @@ class Wait:
 			for indHold in self.holds:
 				command = indHold["waitCommand"]
 				retCode = indHold["retCode"]
-				cResult = os.popen(command).read()
+				#cResult = os.popen(command).read()
+				
+				runCmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+				runCmd.wait()
+				cResult = runCmd.stdout
+				
 				if 'splitFirst' in indHold:
 					cResult = cResult.split()[0]
 				if 'contains' in indHold:
