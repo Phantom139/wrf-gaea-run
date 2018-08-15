@@ -234,15 +234,15 @@ class Postprocessing_Steps:
 					print(logName)
 					catCMD = ""
 					if(self.aSet.fetch("unipost_out") == "grib"):
-						catCMD = "cat > itag <<" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR"
+						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\nEOF"
 					elif(self.aSet.fetch("unipost_out") == "grib2"):
-						catCMD = "cat > itag <<" + iFile + '\n' + "netcdf\n" + "grib2\n" + str(year) + "-" + str(month) + "-" + str(day) + "_"  + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR"					
+						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + "grib2\n" + str(year) + "-" + str(month) + "-" + str(day) + "_"  + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\nEOF"					
 					else:
 						#You should never end up here...
 						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
 					upp_job_contents += catCMD
+					upp_job_contents += '\n' + "rm fort*" + '\n' + "ln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14" + '\n'
 					upp_job_contents += "\n" + "mpirun -np " + str(total) + " unipost.exe > " + logName
-					upp_job_contents += '\n' + "rm fort*" + '\n' + "ln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14" + '\n' 
 					# Create the job file, then submit it.
 					tWrite.generateTemplatedFile(temDir + "upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
 				# Once the file has been written, submit the job.
