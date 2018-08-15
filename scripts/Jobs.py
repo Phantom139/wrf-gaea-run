@@ -182,7 +182,7 @@ class Postprocessing_Steps:
 	def prepare_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
 			print("  5.a. UPP Flagged Active")
-			uppDir = os.path.realpath(__file__) + "../post/UPP/"
+			uppDir = os.path.dirname(os.path.abspath(__file__)) + "../post/UPP/"
 			if(self.aSet.fetch("unipost_out") == "grib"):
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
 			elif(self.aSet.fetch("unipost_out") == "grib2"):
@@ -213,6 +213,7 @@ class Postprocessing_Steps:
 			tWrite = Template.Template_Writer(self.aSet)
 			uppNodes = self.aSet.fetch("num_upp_nodes")
 			uppProcs = self.aSet.fetch("num_unipost_processors")
+			total = int(uppNodes) * int(uppProcs)
 			fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
 			print("  5.b. Running UPP on " + str(len(fList)) + " wrfout files")
 			with Tools.cd(self.postDir):
@@ -235,7 +236,7 @@ class Postprocessing_Steps:
 						#You should never end up here...
 						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
 					upp_job_contents += catCMD
-					upp_job_contents += "\n" + "mpirun -np " + str(int(uppNodes) * int(uppProcs)) + " unipost.exe > " + logName
+					upp_job_contents += "\n" + "mpirun -np " + str(total) + " unipost.exe > " + logName
 					# Create the job file, then submit it.
 					tWrite.generateTemplatedFile("../templates/upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
 				# Once the file has been written, submit the job.
