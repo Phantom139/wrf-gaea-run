@@ -183,7 +183,7 @@ class Postprocessing_Steps:
 		if(self.aSet.fetch("post_run_unipost") == '1'):
 			print("  5.a. UPP Flagged Active")
 			curDir = os.path.dirname(os.path.abspath(__file__)) 
-			uppDir = curDir[:curDir.rfind('/') + "/post/UPP/"
+			uppDir = curDir[:curDir.rfind('/')] + "/post/UPP/"
 			if(self.aSet.fetch("unipost_out") == "grib"):
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
 			elif(self.aSet.fetch("unipost_out") == "grib2"):
