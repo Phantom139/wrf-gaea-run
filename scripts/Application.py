@@ -77,6 +77,10 @@ class Application():
 		if(settings.fetch("run_postprocessing") == '1'):
 			print(" 5. Running post-processing")
 			post = Jobs.Postprocessing_Steps(settings, modelParms)
+			if(post.prepare_postprocessing() == False):
+				sys.exit("   5. ERROR: unipost.exe process failed to initialize, check error file.")
+			if(post.run_postprocessing() == False):
+				sys.exit("   5. ERROR: unipost.exe process failed to complete, check error file.")
 			print(" 5. Done")
 		else:
 			print(" 5. Post-processing flag disabled, skipping step")

@@ -15,6 +15,7 @@ import ApplicationSettings
 import ModelData
 import Tools
 import Wait
+import Template
 
 # JobSteps: Class responsible for handling the steps that involve job submission and checkup
 class JobSteps:
@@ -177,9 +178,6 @@ class Postprocessing_Steps:
 		self.startTime = settings.fetch("starttime")
 		self.postDir = self.wrfDir + '/' + self.startTime[0:8] + "/postprd/"
 		
-		if(self.prepare_postprocessing() == False):
-			sys.exit(" 5. Failed to prepare post-processing, aborting script")
-		
 	# This method is mainly used for UPP post-processing as it requires some links to be established prior to running a Unipost.exe job. Python is skipped
 	def prepare_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
@@ -211,10 +209,14 @@ class Postprocessing_Steps:
 			
 	def run_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
-			# To run unipost, we gather all of the wrfout files first into a list, and then iterate through each, running a unipost job for each file
+			# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
+			tWrite = Template.Template_Writer(self.aSet)
+			uppNodes = self.aSet.fetch("num_upp_nodes")
+			uppProcs = self.aSet.fetch("num_unipost_processors")
 			fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
 			print("  5.b. Running UPP on " + str(len(fList)) + " wrfout files")
 			with Tools.cd(self.postDir):
+				upp_job_contents = ""
 				for iFile in fList:
 					dNum = iFile[-23:3]
 					year = iFile[-19:4]
@@ -223,28 +225,37 @@ class Postprocessing_Steps:
 					hour = iFile[-8:2]
 					minute = iFile[-5:2]
 					second = iFile[-2:]
+					logName = "unipost_log_" + dNum + "_" + year + "_" + month + "_" + day + "_" + hour + ":" + minute + ":" + second + ".log"
+					catCMD = ""
 					if(self.aSet.fetch("unipost_out") == "grib"):
-						Tools.popen(self.aSet, "cat > itag <<EOF\n" 
-						                     + iFile + '\n'
-											 + "netcdf\n"
-											 + str(year) + "-" + str(month) + "-" + str(day) + "_" 
-											 + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
-											 + "NCAR\0")
+						catCMD = "cat > itag <<EOF\n" 
+						       + iFile + '\n'
+							   + "netcdf\n"
+							   + str(year) + "-" + str(month) + "-" + str(day) + "_" 
+							   + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
+							   + "NCAR\0"
 					elif(self.aSet.fetch("unipost_out") == "grib2"):
-						Tools.popen(self.aSet, "cat > itag <<EOF\n" 
-						                     + iFile + '\n'
-											 + "netcdf\n"
-											 + "grib2\n"
-											 + str(year) + "-" + str(month) + "-" + str(day) + "_" 
-											 + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
-											 + "NCAR\0")					
+						catCMD = "cat > itag <<EOF\n" 
+						       + iFile + '\n'
+							   + "netcdf\n"
+							   + "grib2\n"
+							   + str(year) + "-" + str(month) + "-" + str(day) + "_" 
+							   + str(hour) + ":" + str(minute) + ":" + str(second) + '\n'
+							   + "NCAR\0"					
 					else:
 						#You should never end up here...
 						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
+					upp_job_contents += catCMD
+					upp_job_contents += "\n" + "mpirun -np " + str(int(uppNodes) * int(uppProcs)) + " unipost.exe > " + logName
 					# Create the job file, then submit it.
-					
-			# Once the loop is complete, we run a test command for a file-count on the wrfprs files. Once matched, we test the files
+					tWrite.generateTemplatedFile("../templates/upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
+				# Once the file has been written, submit the job.
+				Tools.popen(self.aSet, "qsub upp.job")
+				# Wait for testing...
+				return True
 		elif(self.aSet.fetch("post_run_python") == '1'):
+			return True
 		else:
 			sys.exit("Error: run_postprocessing() called without a mode flagged, abort.")
+			return False
 		

@@ -70,6 +70,7 @@ class AppSettings():
 		self.replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8]
 		self.replacementKeys["[out_geogrid_path]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
 		self.replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
+		self.replacementKeys["[run_postprd_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/postprd"
 		self.replacementKeys["[data_dir]"] = self.fetch("datadir") + '/' + self.fetch("modeldata") + '/' + self.fetch("starttime")
 		self.replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
 		self.replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
@@ -87,6 +88,10 @@ class AppSettings():
 		self.replacementKeys["[num_wrf_processors]"] = self.fetch("num_wrf_processors")
 		self.replacementKeys["[wrf_walltime]"] = self.fetch("wrf_walltime")
 		self.replacementKeys["[mpi_wrf_total]"] = str(int(self.fetch("num_wrf_nodes")) * int(self.fetch("num_wrf_processors")))
+		self.replacementKeys["[num_upp_nodes]"] = self.fetch("num_upp_nodes")
+		self.replacementKeys["[num_upp_processors]"] = self.fetch("num_upp_processors")
+		self.replacementKeys["[upp_walltime]"] = self.fetch("upp_walltime")
+		self.replacementKeys["[mpi_upp_total]"] = str(int(self.fetch("num_upp_nodes")) * int(self.fetch("num_upp_processors")))
 		self.replacementKeys["[dfi_back_year]"] = str(dfi_back.year)		
 		self.replacementKeys["[dfi_back_month]"] = str(dfi_back.month)
 		self.replacementKeys["[dfi_back_day]"] = str(dfi_back.day)
