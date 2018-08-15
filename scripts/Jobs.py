@@ -69,28 +69,27 @@ class JobSteps:
 			if(self.aSet.fetch("debugmode") == '1'):
 				print("Debug mode is active, skipping")
 				return True
-			else:
-				#Submit a wait condition for the file to appear
-				try:
-					firstWait = [{"waitCommand": "(ls metgrid.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
-					wait1 = Wait.Wait(firstWait, timeDelay = 25)
-					wait1.hold()
-				except Wait.TimeExpiredException:
-					sys.exit("metgrid.exe job not completed, abort.")
-				#Now wait for the output file to be completed
-				try:
-					secondWait = [{"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "Successful completion of program metgrid.exe", "retCode": 1},
-								  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "fatal", "retCode": 2},
-								  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "runtime", "retCode": 2},
-								  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "error", "retCode": 2},]
-					wait2 = Wait.Wait(secondWait, timeDelay = 25)
-					wRC = wait2.hold()
-					if wRC == 1:
-						return True
-					elif wRC == 2:
-						return False
-				except Wait.TimeExpiredException:
-					sys.exit("metgrid.exe job not completed, abort.")
+			#Submit a wait condition for the file to appear
+			try:
+				firstWait = [{"waitCommand": "(ls metgrid.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				wait1 = Wait.Wait(firstWait, timeDelay = 25)
+				wait1.hold()
+			except Wait.TimeExpiredException:
+				sys.exit("metgrid.exe job not completed, abort.")
+			#Now wait for the output file to be completed
+			try:
+				secondWait = [{"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "Successful completion of program metgrid.exe", "retCode": 1},
+							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "error", "retCode": 2},]
+				wait2 = Wait.Wait(secondWait, timeDelay = 25)
+				wRC = wait2.hold()
+				if wRC == 1:
+					return True
+				elif wRC == 2:
+					return False
+			except Wait.TimeExpiredException:
+				sys.exit("metgrid.exe job not completed, abort.")
 		print("run_metgrid(): Failed to enter run directory")
 		return False
 		
@@ -99,34 +98,33 @@ class JobSteps:
 			Tools.popen(self.aSet, "qsub real.job")
 			if(self.aSet.fetch("debugmode") == '1'):
 				print("Debug mode is active, skipping")
-				return True
-			else:			
-				#Submit a wait condition for the file to appear
-				try:
-					firstWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
-					wait1 = Wait.Wait(firstWait, timeDelay = 25)
-					wait1.hold()			
-				except Wait.TimeExpiredException:
-					sys.exit("real.exe job not completed, abort.")
-				#Now wait for the output file to be completed
-				try:
-					secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS", "retCode": 1},
-								  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
-								  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
-								  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "error", "retCode": 2},]
-					wait2 = Wait.Wait(secondWait, timeDelay = 60)
-					wRC = wait2.hold()
-					if wRC == 2:
-						return False
-					else:
-						#Validate the presense of the two files.
-						file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
-						file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
-						if("yes" in file1 and "yes" in file2):
-							return True
-						return False					
-				except Wait.TimeExpiredException:
-					sys.exit("real.exe job not completed, abort.")		
+				return True			
+			#Submit a wait condition for the file to appear
+			try:
+				firstWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				wait1 = Wait.Wait(firstWait, timeDelay = 25)
+				wait1.hold()			
+			except Wait.TimeExpiredException:
+				sys.exit("real.exe job not completed, abort.")
+			#Now wait for the output file to be completed
+			try:
+				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS", "retCode": 1},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "error", "retCode": 2},]
+				wait2 = Wait.Wait(secondWait, timeDelay = 60)
+				wRC = wait2.hold()
+				if wRC == 2:
+					return False
+				else:
+					#Validate the presense of the two files.
+					file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
+					file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
+					if("yes" in file1 and "yes" in file2):
+						return True
+					return False					
+			except Wait.TimeExpiredException:
+				sys.exit("real.exe job not completed, abort.")		
 		print("run_real(): Failed to enter run directory")
 		return False			
 		
@@ -135,33 +133,33 @@ class JobSteps:
 			# Remove the old log files as these are no longer needed
 			Tools.popen(self.aSet, "rm output/rsl.out.*")
 			Tools.popen(self.aSet, "rm output/rsl.error.*")	
+			time.sleep(3)
 			Tools.popen(self.aSet, "qsub wrf.job")
 			if(self.aSet.fetch("debugmode") == '1'):
 				print("Debug mode is active, skipping")
-				return True
-			else:			
-				#Submit a wait condition for the file to appear
-				try:
-					firstWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
-					wait1 = Wait.Wait(firstWait, timeDelay = 25)
-					wait1.hold()			
-				except Wait.TimeExpiredException:
-					sys.exit("wrf.exe job not completed, abort.")
-				#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
-				try:
-					secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS COMPLETE WRF", "retCode": 1},
-								  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
-								  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
-								  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "error", "retCode": 2},]
-					# Note: I have the script checking the files once every three minutes so we don't stack five calls rapidly, this can be modified later if needed.
-					wait2 = Wait.Wait(secondWait, timeDelay = 180)
-					wRC = wait2.hold()
-					if wRC == 2:
-						return False
-					else:
-						return True				
-				except Wait.TimeExpiredException:
-					sys.exit("wrf.exe job not completed, abort.")				
+				return True			
+			#Submit a wait condition for the file to appear
+			try:
+				firstWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				wait1 = Wait.Wait(firstWait, timeDelay = 25)
+				wait1.hold()			
+			except Wait.TimeExpiredException:
+				sys.exit("wrf.exe job not completed, abort.")
+			#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
+			try:
+				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS COMPLETE WRF", "retCode": 1},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "error", "retCode": 2},]
+				# Note: I have the script checking the files once every three minutes so we don't stack five calls rapidly, this can be modified later if needed.
+				wait2 = Wait.Wait(secondWait, timeDelay = 180)
+				wRC = wait2.hold()
+				if wRC == 2:
+					return False
+				else:
+					return True				
+			except Wait.TimeExpiredException:
+				sys.exit("wrf.exe job not completed, abort.")				
 		print("run_wrf(): Failed to enter run directory")
 		return False			
 
