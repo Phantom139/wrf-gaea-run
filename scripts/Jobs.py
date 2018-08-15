@@ -188,6 +188,7 @@ class Postprocessing_Steps:
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
 			elif(self.aSet.fetch("unipost_out") == "grib2"):
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/postcntrl.xml " + self.postDir + "postcntrl.xml")
+				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/postxconfig-NT.txt " + self.postDir + "postxconfig-NT.txt")
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/post_avblflds.xml " + self.postDir + "post_avblflds.xml")
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/params_grib2_tbl_new " + self.postDir + "params_grib2_tbl_new")
 			else:
@@ -197,7 +198,7 @@ class Postprocessing_Steps:
 			Tools.popen(self.aSet, "ln -sf " + uppDir + "scripts/cbar.gs " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/nam_micro_lookup.dat " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/hires_micro_lookup.dat " + self.postDir)
-			Tools.popen(self.aSet, "ln -fs " + uppDir + "includes/* " + self.postDir)
+			Tools.popen(self.aSet, "ln -fs " + uppDir + "includes/*.bin " + self.postDir)
 			print("  5.a. Done")
 			return True
 		elif(self.aSet.fetch("post_run_python") == '1'):
@@ -241,7 +242,7 @@ class Postprocessing_Steps:
 						#You should never end up here...
 						sys.exit("  5.b. Error: grib/grib2 not defined in control.txt")
 					upp_job_contents += catCMD
-					upp_job_contents += '\n' + "rm fort*" + '\n' + "ln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14"
+					upp_job_contents += '\n' + "rm fort.*" + '\n' + "ln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14"
 					upp_job_contents += "\n" + "mpirun -np " + str(total) + " unipost.exe > " + logName + '\n'
 					# Create the job file, then submit it.
 					tWrite.generateTemplatedFile(temDir + "upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
