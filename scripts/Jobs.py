@@ -202,7 +202,7 @@ class Postprocessing_Steps:
 		elif(self.aSet.fetch("post_run_python") == '1'):
 			print("  5.a. Python Flagged Active")
 			print("  5.a. Done")
-			retrun True
+			return True
 		else:
 			print("  5. Error: No post-processing methods selected, please make changes to control.txt, aborting")
 			return False
