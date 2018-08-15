@@ -4,7 +4,6 @@
 #
 # Python script to execute the wrf_gaea.py script with options
 
-import scripts.Tools as Tools
 import sys
 import os
 import datetime
@@ -18,7 +17,7 @@ class Application():
 		curTime = datetime.date.today().strftime("%B%d%Y-%H%M%S")
 		curDir = os.path.dirname(os.path.abspath(__file__)) 
 		os.system("nohup " + curDir + "/scripts/Application.py > wrf_gaea_run_" + str(curTime) + ".log")
-		mv("wrf_gaea_run_" + str(curTime) + ".log ../logs/")
+		os.system("mv wrf_gaea_run_" + str(curTime) + ".log ../logs/")
 
 if __name__ == "__main__":
 	pInst = Application()
