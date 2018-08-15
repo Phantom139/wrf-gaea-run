@@ -32,7 +32,7 @@ class JobSteps:
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
 		#Copy important files to the directory
-		Tools.popen(self.aSet, "cp ../run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		Tools.popen(self.aSet, "cp " + settings.fetch("headdir") + "run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		#Move the generated files to the run directory		
 		Tools.popen(self.aSet, "mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
 		Tools.popen(self.aSet, "mv geogrid.job " + self.wrfDir + '/' + self.startTime[0:8])
@@ -46,7 +46,7 @@ class JobSteps:
 	
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
-		Tools.popen(self.aSet, "cp ../vtables/Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
+		Tools.popen(self.aSet, "cp " + self.aSet.fetch("headdir") + "vtables/Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
 		Tools.popen(self.aSet, "mv namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
 		mParms = self.modelParms.fetch()
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
@@ -182,8 +182,7 @@ class Postprocessing_Steps:
 	def prepare_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
 			print("  5.a. UPP Flagged Active")
-			curDir = os.path.dirname(os.path.abspath(__file__)) 
-			uppDir = curDir[:curDir.rfind('/')] + "/post/UPP/"
+			uppDir = self.aSet.fetch("headdir") + "post/UPP/"
 			if(self.aSet.fetch("unipost_out") == "grib"):
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
 			elif(self.aSet.fetch("unipost_out") == "grib2"):
@@ -222,8 +221,8 @@ class Postprocessing_Steps:
 		# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
 		tWrite = Template.Template_Writer(self.aSet)
 		curDir = os.path.dirname(os.path.abspath(__file__)) 
-		temDir = curDir[:curDir.rfind('/')] + "/templates/"
-		uppDir = curDir[:curDir.rfind('/')] + "/post/UPP/"
+		temDir = self.aSet.fetch("headdir") + "templates/"
+		uppDir = self.aSet.fetch("headdir") + "post/UPP/"
 		uppNodes = self.aSet.fetch("num_upp_nodes")
 		uppProcs = self.aSet.fetch("num_upp_processors")
 		total = int(uppNodes) * int(uppProcs)

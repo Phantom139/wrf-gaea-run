@@ -40,12 +40,12 @@ class Application():
 		print(" 3. Generating run files from templates")
 		tWrite = Template.Template_Writer(settings)
 		for ext in mParms["FileExtentions"]:
-			tWrite.generateTemplatedFile("../templates/namelist.wps.template", "namelist.wps." + ext, extraKeys = {"[ungrib_prefix]": ext, "[fg_name]": mParms["FGExt"]})
-		tWrite.generateTemplatedFile("../templates/namelist.input.template", "namelist.input")
-		tWrite.generateTemplatedFile("../templates/geogrid.job.template", "geogrid.job")
-		tWrite.generateTemplatedFile("../templates/metgrid.job.template", "metgrid.job")
-		tWrite.generateTemplatedFile("../templates/real.job.template", "real.job")
-		tWrite.generateTemplatedFile("../templates/wrf.job.template", "wrf.job")
+			tWrite.generateTemplatedFile(settings.fetch("headdir") + "templates/namelist.wps.template", "namelist.wps." + ext, extraKeys = {"[ungrib_prefix]": ext, "[fg_name]": mParms["FGExt"]})
+		tWrite.generateTemplatedFile(settings.fetch("headdir") + "templates/namelist.input.template", "namelist.input")
+		tWrite.generateTemplatedFile(settings.fetch("headdir") + "templates/geogrid.job.template", "geogrid.job")
+		tWrite.generateTemplatedFile(settings.fetch("headdir") + "templates/metgrid.job.template", "metgrid.job")
+		tWrite.generateTemplatedFile(settings.fetch("headdir") + "templates/real.job.template", "real.job")
+		tWrite.generateTemplatedFile(settings.fetch("headdir") + "templates/wrf.job.template", "wrf.job")
 		print(" 3. Done")
 		#Step 4: Run the WRF steps
 		print(" 4. Run WRF Steps")

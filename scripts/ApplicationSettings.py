@@ -40,6 +40,7 @@ class AppSettings():
 			print("Program critical variables missing, check for existence of control.txt, abort.")
 			return False
 		else:
+			self.settings["headdir"] = curDir[:curDir.rfind('/')] + '/'
 			return True
         
 	def fetch(self, key):
