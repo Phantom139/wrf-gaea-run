@@ -182,7 +182,8 @@ class Postprocessing_Steps:
 	def prepare_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
 			print("  5.a. UPP Flagged Active")
-			uppDir = os.path.dirname(os.path.abspath(__file__)) + "../post/UPP/"
+			curDir = os.path.dirname(os.path.abspath(__file__)) 
+			uppDir = curDir[:curDir.rfind('/') + "/post/UPP/"
 			if(self.aSet.fetch("unipost_out") == "grib"):
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
 			elif(self.aSet.fetch("unipost_out") == "grib2"):
@@ -212,7 +213,7 @@ class Postprocessing_Steps:
 			# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
 			tWrite = Template.Template_Writer(self.aSet)
 			uppNodes = self.aSet.fetch("num_upp_nodes")
-			uppProcs = self.aSet.fetch("num_unipost_processors")
+			uppProcs = self.aSet.fetch("num_upp_processors")
 			total = int(uppNodes) * int(uppProcs)
 			fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
 			print("  5.b. Running UPP on " + str(len(fList)) + " wrfout files")
