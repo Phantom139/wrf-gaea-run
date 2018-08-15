@@ -8,8 +8,6 @@ cd [run_postprd_dir]
 
 module add [wrf_module]
 
-[upp_itag]
-
 ulimit -s unlimited
 
 [upp_job_contents]

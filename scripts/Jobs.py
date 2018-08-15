@@ -222,6 +222,7 @@ class Postprocessing_Steps:
 			with Tools.cd(self.postDir):
 				upp_job_contents = ""
 				for iFile in fList:
+					print(iFile)
 					dNum = iFile[-23:3]
 					year = iFile[-19:4]
 					month = iFile[-14:2]
