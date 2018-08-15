@@ -222,15 +222,15 @@ class Postprocessing_Steps:
 			with Tools.cd(self.postDir):
 				upp_job_contents = ""
 				for iFile in fList:
-					print(iFile)
-					dNum = iFile[-23:3]
-					year = iFile[-19:4]
-					month = iFile[-14:2]
-					day = iFile[-11:2]
-					hour = iFile[-8:2]
-					minute = iFile[-5:2]
+					dNum = iFile[-23:-21]
+					year = iFile[-19:-15]
+					month = iFile[-14:-12]
+					day = iFile[-11:-9]
+					hour = iFile[-8:-6]
+					minute = iFile[-5:-3]
 					second = iFile[-2:]
 					logName = "unipost_log_" + dNum + "_" + year + "_" + month + "_" + day + "_" + hour + ":" + minute + ":" + second + ".log"
+					print(logName)
 					catCMD = ""
 					if(self.aSet.fetch("unipost_out") == "grib"):
 						catCMD = "cat > itag <<EOF\n" + iFile + '\n' + "netcdf\n" + str(year) + "-" + str(month) + "-" + str(day) + "_" + str(hour) + ":" + str(minute) + ":" + str(second) + '\n' + "NCAR\0"
