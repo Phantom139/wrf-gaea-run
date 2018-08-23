@@ -125,3 +125,19 @@
  nio_groups = 1,
  / 
  
+ &afwa
+ afwa_diag_opt              = 1,       
+ afwa_ptype_opt             = 1,       
+ afwa_vil_opt               = 1,       
+ afwa_radar_opt             = 1,       
+ afwa_severe_opt            = 1,      
+ afwa_icing_opt             = 1,      
+ afwa_vis_opt               = 1,      
+ afwa_cloud_opt             = 1,      
+ afwa_therm_opt             = 1,      
+ afwa_turb_opt              = 1,       
+ afwa_buoy_opt              = 1,       
+ afwa_ptype_ccn_tmp         = 264.15,  
+ afwa_ptype_tot_melt        = 50,      
+ / 
+ 

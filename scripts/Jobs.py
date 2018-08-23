@@ -280,12 +280,12 @@ class Postprocessing_Steps:
 				for fHour in range(0, fileCount):
 					fStr = "0" + str(fHour) if fHour < 10 else str(fHour)
 					inFile = "WRFPRS.GrbF" + fStr
-					Tools.popen(self.aSet, uppDir + "scripts/grib2ctl.pl " + inFile + " > wrfprs_f" + fStr + ".ctl")
+					Tools.popen(self.aSet, uppDir + "scripts/grib2ctl.pl " + self.postDir + '/' + inFile + " > " + self.postDir + "/wrfprs_f" + fStr + ".ctl")
 			elif(self.aSet.fetch("unipost_out") == "grib2"):
 				for fHour in range(0, fileCount):
 					fStr = "0" + str(fHour) if fHour < 10 else str(fHour)
 					inFile = "WRFPRS.GrbF" + fStr
-					Tools.popen(self.aSet, uppDir + "scripts/g2ctl.pl " + inFile + " > wrfprs_f" + fStr + ".ctl")
+					Tools.popen(self.aSet, uppDir + "scripts/g2ctl.pl " + self.postDir + '/' + inFile + " > " + self.postDir + "/wrfprs_f" + fStr + ".ctl")
 			#To-Do Note: Fork off to GrADS here...
 			
 			return True
