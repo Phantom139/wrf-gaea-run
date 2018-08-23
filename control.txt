@@ -10,7 +10,7 @@
 #    This is also an acceptable format for this file
 #
 # General Parameters
-starttime 2018061500 #starttime: The model initialization time in format YYYYMMDDHH (HH in UTC)
+starttime 2018061000 #starttime: The model initialization time in format YYYYMMDDHH (HH in UTC)
 rundays 1
 runhours 0
 geogdir /data1/climlab/wrf_geog
