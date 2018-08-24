@@ -18,6 +18,7 @@ class AppSettings():
 	settings = {}
 	replacementKeys = {}
 	myUserID = None
+	logger = None
 	
 	def loadSettings(self):
 		curDir = os.path.dirname(os.path.abspath(__file__))
