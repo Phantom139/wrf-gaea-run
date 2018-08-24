@@ -10,11 +10,16 @@ import os.path
 		
 #loggedPrint: A class that prints output to console and then writes it to a log file
 class loggedPrint:
+	f = None
+	filePath = None
+	
 	def __init__(self, logFile):
-		self.f = open(logFile, "w")
+		self.filePath = logFile
 	
 	def write(self, out):
+		self.f = open(logFile, "a")
 		self.f.write(out + '\n')
+		self.f.close()
 		print(out)
 	
 	def close(self):
