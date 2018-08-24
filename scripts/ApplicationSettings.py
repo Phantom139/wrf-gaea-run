@@ -107,14 +107,14 @@ class AppSettings():
 		return self.myUserID
      
 	def __init__(self, logger):
+		self.logger = logger	
+	
 		if(self.loadSettings() == False):
 			logger.write("Cannot init program, control.txt not found")
 			logger.close()
 			sys.exit("Failed to load settings, please check for control.txt")
         
 		self.myUserID = os.popen("whoami").read()
-		
-		self.logger = logger
 		
 		self.startTime = datetime.datetime.strptime(self.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = self.fetch("rundays")
