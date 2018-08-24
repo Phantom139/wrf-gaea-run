@@ -11,6 +11,8 @@ import datetime
 # Application: Class responsible for running the program steps.
 class Application():			
 	def __init__(self):
+		curDir = os.path.dirname(os.path.abspath(__file__))
+	
 		#NOTE: If you're looking to automate (CRON) jobs, use this portion of the code to update control.txt
 		
 		#Run the script
