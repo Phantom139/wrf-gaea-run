@@ -19,14 +19,16 @@ import Template
 
 # JobSteps: Class responsible for handling the steps that involve job submission and checkup
 class JobSteps:
+	logger = None
 	aSet = None
 	modelParms = None
 	startTime = ""
 	dataDir = ""
 	wrfDir = ""
 
-	def __init__(self, settings, modelParms):
+	def __init__(self, settings, modelParms, logger):
 		self.aSet = settings
+		self.logger = logger
 		self.modelParms = modelParms
 		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.wrfDir = settings.fetch("wrfdir")
@@ -67,7 +69,7 @@ class JobSteps:
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):	
 			Tools.popen(self.aSet, "qsub metgrid.job")
 			if(self.aSet.fetch("debugmode") == '1'):
-				print("Debug mode is active, skipping")
+				self.logger.write("Debug mode is active, skipping")
 				return True
 			#Submit a wait condition for the file to appear
 			try:
@@ -90,14 +92,14 @@ class JobSteps:
 					return False
 			except Wait.TimeExpiredException:
 				sys.exit("metgrid.exe job not completed, abort.")
-		print("run_metgrid(): Failed to enter run directory")
+		self.logger.write("run_metgrid(): Failed to enter run directory")
 		return False
 		
 	def run_real(self):
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
 			Tools.popen(self.aSet, "qsub real.job")
 			if(self.aSet.fetch("debugmode") == '1'):
-				print("Debug mode is active, skipping")
+				self.logger.write("Debug mode is active, skipping")
 				return True			
 			#Submit a wait condition for the file to appear
 			try:
@@ -125,7 +127,7 @@ class JobSteps:
 					return False					
 			except Wait.TimeExpiredException:
 				sys.exit("real.exe job not completed, abort.")		
-		print("run_real(): Failed to enter run directory")
+		self.logger.write("run_real(): Failed to enter run directory")
 		return False			
 		
 	def run_wrf(self):
@@ -136,7 +138,7 @@ class JobSteps:
 			time.sleep(3)
 			Tools.popen(self.aSet, "qsub wrf.job")
 			if(self.aSet.fetch("debugmode") == '1'):
-				print("Debug mode is active, skipping")
+				self.logger.write("Debug mode is active, skipping")
 				return True			
 			#Submit a wait condition for the file to appear
 			try:
@@ -160,17 +162,19 @@ class JobSteps:
 					return True				
 			except Wait.TimeExpiredException:
 				sys.exit("wrf.exe job not completed, abort.")				
-		print("run_wrf(): Failed to enter run directory")
+		self.logger.write("run_wrf(): Failed to enter run directory")
 		return False			
 
 class Postprocessing_Steps:
 	aSet = None
 	modelParms = None
+	logger = None
 	startTime = ""
 	wrfDir = ""
 
-	def __init__(self, settings, modelParms):
+	def __init__(self, settings, modelParms, logger):
 		self.aSet = settings
+		self.logger = logger
 		self.modelParms = modelParms
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
@@ -179,7 +183,7 @@ class Postprocessing_Steps:
 	# This method is mainly used for UPP post-processing as it requires some links to be established prior to running a Unipost.exe job. Python is skipped
 	def prepare_postprocessing(self):
 		if(self.aSet.fetch("post_run_unipost") == '1'):
-			print("  5.a. UPP Flagged Active")
+			self.logger.write("  5.a. UPP Flagged Active")
 			uppDir = self.aSet.fetch("headdir") + "post/UPP/"
 			if(self.aSet.fetch("unipost_out") == "grib"):
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/wrf_cntrl.parm " + self.postDir + "wrf_cntrl.parm")
@@ -189,21 +193,21 @@ class Postprocessing_Steps:
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/post_avblflds.xml " + self.postDir + "post_avblflds.xml")
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/params_grib2_tbl_new " + self.postDir + "params_grib2_tbl_new")
 			else:
-				print("  5.a. Error: Neither GRIB or GRIB2 is defined for UPP output processing, please modify control.txt, aborting")
+				self.logger.write("  5.a. Error: Neither GRIB or GRIB2 is defined for UPP output processing, please modify control.txt, aborting")
 				return False
 			
 			Tools.popen(self.aSet, "ln -sf " + uppDir + "scripts/cbar.gs " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/nam_micro_lookup.dat " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/hires_micro_lookup.dat " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "includes/*.bin " + self.postDir)
-			print("  5.a. Done")
+			self.logger.write("  5.a. Done")
 			return True
 		elif(self.aSet.fetch("post_run_python") == '1'):
-			print("  5.a. Python Flagged Active")
-			print("  5.a. Done")
+			self.logger.write("  5.a. Python Flagged Active")
+			self.logger.write("  5.a. Done")
 			return True
 		else:
-			print("  5. Error: No post-processing methods selected, please make changes to control.txt, aborting")
+			self.logger.write("  5. Error: No post-processing methods selected, please make changes to control.txt, aborting")
 			return False
 			
 	def run_postprocessing(self):
@@ -227,7 +231,7 @@ class Postprocessing_Steps:
 		fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
 		fileCount = len(fList)
 		fLogs = []
-		print("  5.b. Running UPP on " + str(fileCount) + " wrfout files")
+		self.logger.write("  5.b. Running UPP on " + str(fileCount) + " wrfout files")
 		with Tools.cd(self.postDir):
 			upp_job_contents = ""
 			for iFile in fList:
@@ -273,7 +277,7 @@ class Postprocessing_Steps:
 			cmdTxt = fCountTest.fetch()
 			strCount = fCountTest[fCountTest.rfind('F'):]
 			if(not (int(strCount)) == (fileCount - 1)):
-				print("  5.b. Error: Number of expected files (" + fileCount + ") does not match actual count (" + int(strCount) + 1 + ").")
+				self.logger.write("  5.b. Error: Number of expected files (" + fileCount + ") does not match actual count (" + int(strCount) + 1 + ").")
 				return False
 			# Now that we have our PRS files, we can convert those to CTL files
 			if(self.aSet.fetch("unipost_out") == "grib"):

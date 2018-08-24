@@ -14,10 +14,7 @@ class Application():
 		#NOTE: If you're looking to automate (CRON) jobs, use this portion of the code to update control.txt
 		
 		#Run the script
-		curTime = datetime.date.today().strftime("%B%d%Y-%H%M%S")
-		curDir = os.path.dirname(os.path.abspath(__file__)) 
-		os.system("nohup " + curDir + "/scripts/Application.py > wrf_gaea_run_" + str(curTime) + ".log")
-		os.system("mv wrf_gaea_run_" + str(curTime) + ".log logs/")
+		os.system("nohup " + curDir + "/scripts/Application.py")
 
 if __name__ == "__main__":
 	pInst = Application()

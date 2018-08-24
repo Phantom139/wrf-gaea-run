@@ -7,6 +7,7 @@
 import datetime
 import time
 import os
+import Tools
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
 class AppSettings():
@@ -26,18 +27,18 @@ class AppSettings():
 				#To-Do: This can be simplified to a single if block, but for the time being, I'm going to leave it as is
 				if not line.split():
 					#Comment
-					print("Ignored empty line")
+					self.logger.write("Ignored empty line")
 				else:
 					tokenized = line.split()
 					if(tokenized[0][0] == '#'):
 						#Comment line, ignore
-						print("Comment line: " + line)
+						self.logger.write("Comment line: " + line)
 					else:
 						self.settings[tokenized[0]] = tokenized[1]
-						print("Applying setting (" + tokenized[0] +"): " + tokenized[1])
+						self.logger.write("Applying setting (" + tokenized[0] +"): " + tokenized[1])
 		#Test for program critical settings
 		if(not self.settings):
-			print("Program critical variables missing, check for existence of control.txt, abort.")
+			self.logger.write("Program critical variables missing, check for existence of control.txt, abort.")
 			return False
 		else:
 			self.settings["headdir"] = curDir[:curDir.rfind('/')] + '/'
@@ -95,7 +96,6 @@ class AppSettings():
 	 
 	def replace(self, str):
 		if not str:
-			#print("AppSettings::replace(): Error, no string sent)
 			return str
 		fStr = str
 		for key, value in self.replacementKeys.items():
@@ -105,11 +105,15 @@ class AppSettings():
 	def whoami(self):
 		return self.myUserID
      
-	def __init__(self):
+	def __init__(self, logger):
 		if(self.loadSettings() == False):
+			logger.write("Cannot init program, control.txt not found")
+			logger.close()
 			sys.exit("Failed to load settings, please check for control.txt")
         
 		self.myUserID = os.popen("whoami").read()
+		
+		self.logger = logger
 		
 		self.startTime = datetime.datetime.strptime(self.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = self.fetch("rundays")

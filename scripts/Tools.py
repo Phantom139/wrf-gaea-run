@@ -35,3 +35,15 @@ class popen:
 			
 	def fetch(self):
 		return self.stored
+		
+#loggedPrint: A class that prints output to console and then writes it to a log file
+class loggedPrint:
+	def __init__(self, logFile):
+		self.f = open(logFile, "w")
+	
+	def write(self, out):
+		self.f.write(out)
+		print(out)
+	
+	def close(self):
+		self.f.close()

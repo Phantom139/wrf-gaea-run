@@ -42,19 +42,19 @@ class ModelData():
 	runDays = 1
 	runHours = 1
 
-	def __init__(self, settings, modelParms):
+	def __init__(self, settings, modelParms, logger):
 		self.aSet = settings
 		self.modelParms = modelParms
 		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
 		self.runHours = settings.fetch("runhours")
-		print(" - Initializing model data with the following settings:")
-		print("  -> Model Data: " + settings.fetch("modeldata"))
-		print("  -> Data Directory: " + self.dataDir)
-		print("  -> Initialization Time: " + self.startTime.strftime('%Y%m%d%H'))
-		print("  -> Run Days: " + str(self.runDays))
-		print("  -> Run Hours: " + str(self.runHours))
+		logger.write(" - Initializing model data with the following settings:")
+		logger.write("  -> Model Data: " + settings.fetch("modeldata"))
+		logger.write("  -> Data Directory: " + self.dataDir)
+		logger.write("  -> Initialization Time: " + self.startTime.strftime('%Y%m%d%H'))
+		logger.write("  -> Run Days: " + str(self.runDays))
+		logger.write("  -> Run Hours: " + str(self.runHours))
 		
 	def fetchFiles(self):
 		model = self.aSet.fetch("modeldata")
