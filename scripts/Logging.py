@@ -17,7 +17,7 @@ class loggedPrint:
 		self.filePath = logFile
 	
 	def write(self, out):
-		self.f = open(logFile, "a")
+		self.f = open(self.filePath, "a")
 		self.f.write(out + '\n')
 		self.f.close()
 		print(out)
