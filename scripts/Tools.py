@@ -42,7 +42,7 @@ class loggedPrint:
 		self.f = open(logFile, "w")
 	
 	def write(self, out):
-		self.f.write(out)
+		self.f.write(out + '\n')
 		print(out)
 	
 	def close(self):
