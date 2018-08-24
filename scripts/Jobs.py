@@ -16,6 +16,7 @@ import ModelData
 import Tools
 import Wait
 import Template
+import Logging
 
 # JobSteps: Class responsible for handling the steps that involve job submission and checkup
 class JobSteps:

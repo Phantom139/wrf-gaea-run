@@ -13,6 +13,7 @@ import Cleanup
 import Template
 import Jobs
 import Tools
+import Logging
 
 # Application: Class responsible for running the program steps.
 class Application():			
@@ -20,7 +21,7 @@ class Application():
 		curTime = datetime.date.today().strftime("%B%d%Y-%H%M%S")
 		curDir = os.path.dirname(os.path.abspath(__file__)) 	
 		logName = "wrf_gaea_run_" + str(curTime) + ".log"
-		logger = Tools.loggedPrint(curDir + '/' + logName)
+		logger = Logging.loggedPrint(curDir + '/' + logName)
 	
 		logger.write("Initializing WRF Auto-Run Program")
 		#Step 1: Load program settings
