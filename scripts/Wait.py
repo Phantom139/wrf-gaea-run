@@ -39,7 +39,9 @@ class Wait:
 				
 				runCmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 				runCmd.wait()
-				cResult = runCmd.stdout
+				cResult, stderr = runCmd.communicate()
+				cResult = str(cResult)
+				stderr = str(stderr)
 				
 				if 'splitFirst' in indHold:
 					cResult = cResult.split()[0]
