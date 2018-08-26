@@ -88,7 +88,7 @@ This script package was written for the CFSv2 forecast system as an input for th
 
 First, you will need to obtain the VTable files for your specific model data source and include these in the directory.
 
-Second, you'll need to add some basic model information to the *ModelDataParameters* class instance, located near the top of the wrf_gaea.py file. A dictionary is contained in this class with the following format:
+Second, you'll need to add some basic model information to the *ModelDataParameters* class instance, located near the top of the scripts/ModelData.py file. A dictionary is contained in this class with the following format:
 ```python
 			"CFSv2": {
 				"VTable": ["Vtable.CFSv2.3D", "Vtable.CFSv2.FLX"],
@@ -120,4 +120,4 @@ Next, scroll down to the *ModelData* class and find the pooled_download section.
 Finally, change the modeldata parameter in control.txt to match your model source.
 				
 ### Contact Info ###
-Any questions regarding the script package can be sent to Robert C. Fritzen (rfritzen1@niu.edu). In-person questions can be done from my office in Davis Hall, room 202.
+Any questions regarding the script package can be sent to Robert C. Fritzen (rfritzen1@niu.edu). In-person questions can be done from my office in Davis Hall, room 209.
