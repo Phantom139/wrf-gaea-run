@@ -8,13 +8,17 @@ This python script package automates the entire WRF process for use on cluster b
 ### Contents ###
 This git repository contains the following subdirectories:
   * post: The folder containing the two post-processing methodologies used by this script.
-    * UPP: The Unified Post-Processor 3.1 package scripts, support for both GRIB/GRIB2 to GrADS
+    * UPP: The Unified Post-Processor 3.2 package scripts, support for both GRIB/GRIB2 to GrADS
+	  * includes: A collection of the WRF binary files required to run the UPP process
+	  * parm: Parameter files required by UPP
+	  * scripts: Additional scripts needed for post-processing
 	* Python: A plotting package based off of the wrf-python library
   * scripts: The python scripts used by this package
     * Application.py: The script package containing the execution path of the program
 	* ApplicationSettings.py: Classes used to apply program settings via control.txt
 	* Cleanup.py: Classes and methods used to clean output files and logs after program completion
 	* Jobs.py: Classes and methods used to submit and monitor WRF jobs to clusters
+	* Logging: Singleton class instance that handles logging the program process to a text file
 	* ModelData.py: Classes and methods used to manage various data sources for the model
 	* Template.py: Classes and methods used to modify and write template files
 	* Tools.py: Extra classes and methods used as support tools for the program
@@ -73,6 +77,11 @@ Would store the value of 12 in a parameter named myvar for the file. Any line th
   * num_upp_nodes: The number of CPU nodes to use in the UPP process
   * num_upp_processors: The number of CPU processors to use in the UPP process
   * upp_walltime: The maximum wall time to be required by the UPP process
+  
+### How to use this program ###
+Once the entire script package is installed, you will need to define the WRF module that is used by your cluster system in the control.txt file, this is the wrfmodule variable. Then, you need to define the directory parameters (geogdir, tabledir, and wrfdir). By default, this script package is equipped to run WRF using CFSv2 data, however you may add other sources if you please (See the section below titled Adding Model Sources).
+
+The run time parameters (starttime, rundays, runhours) need to be defined in the control.txt file, remember that runhours is in ADDITION to rundays, so keep that in mind when setting these parameters. You may adjust the nodes and processors settings as necessary, however these have been provided default values based on multiple tests such that you shouldn't have to. Once your control.txt file has been written you may run the python script **run_wrf.py** from the head directory to push the process to the background (Allowing you to safely close an SSH session and let the process completely run), or, if you want the output pushed to your SSH client, you may run **Application.py** in the scripts/ directory. All logging information will be saved to a log file in the scripts/ directory, and will be moved to a /logs/ folder upon script completion.
   
 ### Adding Model Sources ###
 This script package was written for the CFSv2 forecast system as an input for the WRF model, however the script package is dynamic enough to allow for quick additions of other model sources.
