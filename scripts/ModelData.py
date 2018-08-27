@@ -9,7 +9,7 @@ import time
 import os
 import sys
 from multiprocessing.pool import ThreadPool
-import Logging
+import Tools
 import ApplicationSettings
 
 # ModelDataParameters: Mini class instance that stores information about various WRF data
@@ -50,7 +50,7 @@ class ModelData():
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
 		self.runHours = settings.fetch("runhours")
-		logger = Logging.loggedPrint.instance()
+		logger = Tools.loggedPrint.instance()
 		logger.write(" - Initializing model data with the following settings:")
 		logger.write("  -> Model Data: " + settings.fetch("modeldata"))
 		logger.write("  -> Data Directory: " + self.dataDir)
