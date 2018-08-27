@@ -17,7 +17,7 @@ class Template_Writer:
 		inContents = []
 		with open(inFile, 'r') as source_file:
 			for line in source_file:
-				inContents.append(line)
+				inContents.append(line.strip())
 		
 		with open(outFile, 'w') as target_file:
 			for line in inContents:

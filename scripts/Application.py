@@ -57,23 +57,30 @@ class Application():
 		logger.write("  4.a. Checking for geogrid flag...")
 		if(settings.fetch("run_geogrid") == '1'):
 			logger.write("  4.a. Geogrid flag is set, preparing geogrid job.")
+			#Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
+			#Tools.Process.instance().Lock()			
 			jobs.run_geogrid()
+			#Tools.Process.instance().Unlock()
 			logger.write("  4.a. Geogrid job Done")
 		else:
 			logger.write("  4.a. Geogrid flag is not set, skipping step")
 		logger.write("  4.a. Done")
 		logger.write("  4.b. Running pre-processing executables")
+		Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
 		jobs.run_ungrib()
+		Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
 		if(jobs.run_metgrid() == False):
 			logger.write("   4.b. Error at Metgrid.exe")
 			logger.close()		
 			sys.exit("   4.b. ERROR: Metgrid.exe process failed to complete, check error file.")
 		logger.write("  4.b. Done")
 		logger.write("  4.c. Running WRF executables")
+		Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
 		if(jobs.run_real() == False):
 			logger.write("   4.c. Error at Real.exe")
 			logger.close()		
-			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")				
+			sys.exit("   4.c. ERROR: real.exe process failed to complete, check error file.")
+		Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
 		if(jobs.run_wrf() == False):
 			logger.write("   4.c. Error at WRF.exe")
 			logger.close()		
@@ -84,10 +91,12 @@ class Application():
 		if(settings.fetch("run_postprocessing") == '1'):
 			logger.write(" 5. Running post-processing")
 			post = Jobs.Postprocessing_Steps(settings, modelParms)
+			Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
 			if(post.prepare_postprocessing() == False):
 				logger.write("   5. Error initializing unipost")
 				logger.close()			
-				sys.exit("   5. ERROR: unipost.exe process failed to initialize, check error file.")				
+				sys.exit("   5. ERROR: unipost.exe process failed to initialize, check error file.")
+			Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
 			if(post.run_postprocessing() == False):
 				logger.write("   5. Error running unipost")
 				logger.close()				

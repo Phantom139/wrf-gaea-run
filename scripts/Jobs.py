@@ -50,6 +50,7 @@ class JobSteps:
 	
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
+		Tools.Process.instance().Lock()
 		self.logger.write("run_ungrib(): Enter")
 		Tools.popen(self.aSet, "cp " + self.aSet.fetch("headdir") + "vtables/Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
 		Tools.popen(self.aSet, "mv namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
@@ -68,13 +69,16 @@ class JobSteps:
 			Tools.popen(self.aSet, "chmod +x ungrib.csh")
 			Tools.popen(self.aSet, "./ungrib.csh")
 		self.logger.write("run_ungrib(): Exit")
+		Tools.Process.instance().Unlock()
 		
 	def run_metgrid(self):
+		Tools.Process.instance().Lock()
 		self.logger.write("run_metgrid(): Enter")
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):	
 			Tools.popen(self.aSet, "qsub metgrid.job")
 			if(self.aSet.fetch("debugmode") == '1'):
 				self.logger.write("Debug mode is active, skipping")
+				Tools.Process.instance().Unlock()
 				return True
 			#Submit a wait condition for the file to appear
 			try:
@@ -93,21 +97,26 @@ class JobSteps:
 				wRC = wait2.hold()
 				if wRC == 1:
 					self.logger.write("run_metgrid(): Exit")
+					Tools.Process.instance().Unlock()
 					return True
 				elif wRC == 2:
 					self.logger.write("run_metgrid(): Exit (Failed, Code 2)")
+					Tools.Process.instance().Unlock()
 					return False
 			except Wait.TimeExpiredException:
 				sys.exit("metgrid.exe job not completed, abort.")
 		self.logger.write("run_metgrid(): Failed to enter run directory")
+		Tools.Process.instance().Unlock()
 		return False
 		
 	def run_real(self):
+		Tools.Process.instance().Lock()
 		self.logger.write("run_real(): Enter")
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
 			Tools.popen(self.aSet, "qsub real.job")
 			if(self.aSet.fetch("debugmode") == '1'):
 				self.logger.write("Debug mode is active, skipping")
+				Tools.Process.instance().Unlock()
 				return True			
 			#Submit a wait condition for the file to appear
 			try:
@@ -126,6 +135,7 @@ class JobSteps:
 				wRC = wait2.hold()
 				if wRC == 2:
 					self.logger.write("run_real(): Exit (Failed, Code 2)")
+					Tools.Process.instance().Unlock()
 					return False
 				else:
 					#Validate the presense of the two files.
@@ -133,30 +143,35 @@ class JobSteps:
 					file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
 					if("yes" in file1 and "yes" in file2):
 						self.logger.write("run_real(): Exit")
+						Tools.Process.instance().Unlock()
 						return True
 					self.logger.write("run_real(): Exit (Failed, did not find wrfinput_d01 and wrfbdy_d01")
+					Tools.Process.instance().Unlock()
 					return False					
 			except Wait.TimeExpiredException:
 				sys.exit("real.exe job not completed, abort.")		
 		self.logger.write("run_real(): Failed to enter run directory")
+		Tools.Process.instance().Unlock()
 		return False			
 		
 	def run_wrf(self):
+		Tools.Process.instance().Lock()
 		self.logger.write("run_wrf(): Enter")
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
 			# Do a quick file check to ensure wrf can run
 			file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
 			file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
-			if(not ("yes" in file1 and "yes" in file2)):
+			if(not ("yes" in file1 and "yes" in file2) and (not self.aSet.fetch("debugmode") == '1')):
 				self.logger.write("run_wrf(): Exit (Failed, cannot run wrf.exe without wrfinput_d01 and wrfbdy_d01)")
+				Tools.Process.instance().Unlock()
 				return False
 			# Remove the old log files as these are no longer needed
 			Tools.popen(self.aSet, "rm output/rsl.out.*")
 			Tools.popen(self.aSet, "rm output/rsl.error.*")	
-			time.sleep(3)
 			Tools.popen(self.aSet, "qsub wrf.job")
 			if(self.aSet.fetch("debugmode") == '1'):
 				self.logger.write("Debug mode is active, skipping")
+				Tools.Process.instance().Unlock()
 				return True			
 			#Submit a wait condition for the file to appear
 			try:
@@ -176,13 +191,16 @@ class JobSteps:
 				wRC = wait2.hold()
 				if wRC == 2:
 					self.logger.write("run_wrf(): Exit (Failed, Code 2)")
+					Tools.Process.instance().Unlock()
 					return False
 				else:
 					self.logger.write("run_wrf(): Exit")
+					Tools.Process.instance().Unlock()
 					return True				
 			except Wait.TimeExpiredException:
 				sys.exit("wrf.exe job not completed, abort.")				
 		self.logger.write("run_wrf(): Failed to enter run directory")
+		Tools.Process.instance().Unlock()
 		return False			
 
 class Postprocessing_Steps:
@@ -202,6 +220,7 @@ class Postprocessing_Steps:
 		
 	# This method is mainly used for UPP post-processing as it requires some links to be established prior to running a Unipost.exe job. Python is skipped
 	def prepare_postprocessing(self):
+		Tools.Process.instance().Lock()
 		if(self.aSet.fetch("post_run_unipost") == '1'):
 			self.logger.write("  5.a. UPP Flagged Active")
 			uppDir = self.aSet.fetch("headdir") + "post/UPP/"
@@ -214,6 +233,7 @@ class Postprocessing_Steps:
 				Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/params_grib2_tbl_new " + self.postDir + "params_grib2_tbl_new")
 			else:
 				self.logger.write("  5.a. Error: Neither GRIB or GRIB2 is defined for UPP output processing, please modify control.txt, aborting")
+				Tools.Process.instance().Unlock()
 				return False
 			
 			Tools.popen(self.aSet, "ln -sf " + uppDir + "scripts/cbar.gs " + self.postDir)
@@ -221,13 +241,16 @@ class Postprocessing_Steps:
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/hires_micro_lookup.dat " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "includes/*.bin " + self.postDir)
 			self.logger.write("  5.a. Done")
+			Tools.Process.instance().Unlock()
 			return True
 		elif(self.aSet.fetch("post_run_python") == '1'):
 			self.logger.write("  5.a. Python Flagged Active")
 			self.logger.write("  5.a. Done")
+			Tools.Process.instance().Unlock()
 			return True
 		else:
 			self.logger.write("  5. Error: No post-processing methods selected, please make changes to control.txt, aborting")
+			Tools.Process.instance().Unlock()
 			return False
 			
 	def run_postprocessing(self):
@@ -241,6 +264,7 @@ class Postprocessing_Steps:
 		
 	def run_postprocessing_upp(self):
 		# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
+		Tools.Process.instance().Lock()
 		tWrite = Template.Template_Writer(self.aSet)
 		curDir = os.path.dirname(os.path.abspath(__file__)) 
 		temDir = self.aSet.fetch("headdir") + "templates/"
@@ -289,6 +313,7 @@ class Postprocessing_Steps:
 					waitCond = Wait.Wait(wCond, timeDelay = 60)
 					wRC = waitCond.hold()
 					if wRC == 2:
+						Tools.Process.instance().Unlock()
 						return False			
 				except Wait.TimeExpiredException:
 					sys.exit("unipost.exe job not completed, abort.")
@@ -298,6 +323,7 @@ class Postprocessing_Steps:
 			strCount = fCountTest[fCountTest.rfind('F'):]
 			if(not (int(strCount)) == (fileCount - 1)):
 				self.logger.write("  5.b. Error: Number of expected files (" + fileCount + ") does not match actual count (" + int(strCount) + 1 + ").")
+				Tools.Process.instance().Unlock()
 				return False
 			# Now that we have our PRS files, we can convert those to CTL files
 			if(self.aSet.fetch("unipost_out") == "grib"):
@@ -311,5 +337,5 @@ class Postprocessing_Steps:
 					inFile = "WRFPRS.GrbF" + fStr
 					Tools.popen(self.aSet, uppDir + "scripts/g2ctl.pl " + self.postDir + '/' + inFile + " > " + self.postDir + "/wrfprs_f" + fStr + ".ctl")
 			#To-Do Note: Fork off to GrADS here...
-			
+			Tools.Process.instance().Unlock()
 			return True

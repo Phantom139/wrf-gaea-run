@@ -10,6 +10,7 @@ import os.path
 import datetime
 import ApplicationSettings
 import subprocess
+import time
 
 #CD: Current Directory management, see https://stackoverflow.com/a/13197763/7537290 for implementation. This is used to maintain the overall OS CWD while allowing embedded changes.
 class cd:
@@ -79,3 +80,36 @@ class loggedPrint:
 	
 	def close(self):
 		self.f.close()
+		
+#BreakException: Custom exception that is thrown if the Process HoldUntilOpen() never completes
+class BreakException(Exception):
+	pass		
+		
+@Singleton
+class Process:
+	lock = False
+	
+	def __init__(self):
+		self.lock = False
+		
+	def CanStart(self):
+		return (self.lock == False)
+		
+	def HoldUntilOpen(self, breakTime = None):
+		currentTime = datetime.datetime.utcnow()
+		expTime = currentTime + datetime.timedelta(days=int(7))
+		if(breakTime != None):
+			expTime = currentTime + datetime.timedelta(seconds=int(breakTime))
+		
+		while(datetime.datetime.utcnow() < expTime):
+			if(self.CanStart() == True):
+				return True
+			time.sleep(10)
+		raise BreakException
+		return False
+		
+	def Lock(self):
+		self.lock = True
+		
+	def Unlock(self):
+		self.lock = False
