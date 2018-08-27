@@ -32,7 +32,11 @@ class popen:
 		else:
 			runCmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			runCmd.wait()
-			self.stored = runCmd.stdout
+			cResult, stderr = runCmd.communicate()
+			cResult = str(cResult)
+			stderr = str(stderr)
+			self.stored = [cResult, stderr]
+			loggedPrint.instance().write("popen(" + command +"): " + self.stored[0] + ", " + self.stored[1])
 			
 	def fetch(self):
 		return self.stored
