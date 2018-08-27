@@ -14,15 +14,17 @@ class Template_Writer:
 		self.aSet = settings
 					
 	def generateTemplatedFile(self, inFile, outFile, extraKeys = None):
-		outContents = ""
+		inContents = []
+		with open(inFile, 'r') as source_file:
+			for line in source_file:
+				inContents.append(line)
+		
 		with open(outFile, 'w') as target_file:
-			with open(inFile, 'r') as source_file:
-				for line in source_file:
-					newLine = line
-					newLine = self.aSet.replace(newLine)
-					if(extraKeys != None):
-						for key, value in extraKeys.items():
-							newLine = newLine.replace(key, value)
-					newLine += '\n'
-					outContents += newLine
-			target_file.write(outContents)	
+			for line in inContents:
+				newLine = line
+				newLine = self.aSet.replace(newLine)
+				if(extraKeys != None):
+					for key, value in extraKeys.items():
+						newLine = newLine.replace(key, value)
+				newLine += '\n'
+				target_file.write(newLine)	
