@@ -7,7 +7,7 @@
 import datetime
 import time
 import os
-import Logging
+import Tools
 
 # AppSettings: Class responsible for obtaining information from the control file and parsing it to classes that need the information
 class AppSettings():
@@ -107,7 +107,7 @@ class AppSettings():
 		return self.myUserID
      
 	def __init__(self):
-		self.logger = Logging.loggedPrint.instance()	
+		self.logger = Tools.loggedPrint.instance()	
 	
 		if(self.loadSettings() == False):
 			logger.write("Cannot init program, control.txt not found")

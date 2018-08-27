@@ -16,7 +16,6 @@ import ModelData
 import Tools
 import Wait
 import Template
-import Logging
 
 # JobSteps: Class responsible for handling the steps that involve job submission and checkup
 class JobSteps:
@@ -29,7 +28,7 @@ class JobSteps:
 
 	def __init__(self, settings, modelParms):
 		self.aSet = settings
-		self.logger = Logging.loggedPrint.instance()
+		self.logger = Tools.loggedPrint.instance()
 		self.modelParms = modelParms
 		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.wrfDir = settings.fetch("wrfdir")
@@ -195,7 +194,7 @@ class Postprocessing_Steps:
 
 	def __init__(self, settings, modelParms):
 		self.aSet = settings
-		self.logger = Logging.loggedPrint.instance()
+		self.logger = Tools.loggedPrint.instance()
 		self.modelParms = modelParms
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")

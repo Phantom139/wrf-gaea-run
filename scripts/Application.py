@@ -13,13 +13,12 @@ import Cleanup
 import Template
 import Jobs
 import Tools
-import Logging
 
 # Application: Class responsible for running the program steps.
 class Application():			
 	def __init__(self):
 		curDir = os.path.dirname(os.path.abspath(__file__)) 
-		logger = Logging.loggedPrint.instance()
+		logger = Tools.loggedPrint.instance()
 	
 		logger.write("Initializing WRF Auto-Run Program")
 		#Step 1: Load program settings
