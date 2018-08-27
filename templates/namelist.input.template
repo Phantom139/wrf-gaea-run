@@ -19,15 +19,15 @@
  frames_per_outfile                  = 1,
  restart                             = .false.,
  restart_interval                    = 1440,
- io_form_history                     = 2
- io_form_restart                     = 2
- io_form_input                       = 2
- io_form_boundary                    = 2
- auxhist2_interval                   = 60
- io_form_auxhist2                    = 2
- frames_per_auxhist2                 = 1000
- debug_level                         = 0
- nwp_diagnostics                     = 1
+ io_form_history                     = 2,
+ io_form_restart                     = 2,
+ io_form_input                       = 2,
+ io_form_boundary                    = 2,
+ auxhist2_interval                   = 60,
+ io_form_auxhist2                    = 2,
+ frames_per_auxhist2                 = 1000,
+ debug_level                         = 0,
+ nwp_diagnostics                     = 1,
  /
 
  &domains
@@ -51,15 +51,15 @@
  parent_grid_ratio                   = 1,
  parent_time_step_ratio              = 1,
  feedback                            = 1,
- smooth_option                       = 0
- use_adaptive_time_step               = .true.
- step_to_output_time                  = .true.
- target_cfl                           = 1.2
- target_hcfl                          = 0.84
- max_step_increase_pct                = 10
- starting_time_step                   = -1
- max_time_step                        = -1
- min_time_step                        = 10
+ smooth_option                       = 0,
+ use_adaptive_time_step               = .true.,
+ step_to_output_time                  = .true.,
+ target_cfl                           = 1.2,
+ target_hcfl                          = 0.84,
+ max_step_increase_pct                = 10,
+ starting_time_step                   = -1,
+ max_time_step                        = -1,
+ min_time_step                        = 10,
 
  /
  
@@ -81,9 +81,9 @@
  num_soil_layers                     = 4,
  num_land_cat                        = 28,
  sf_urban_physics                    = 0,
- do_radar_ref                        = 1
- hail_opt                            = 1
- prec_acc_dt                         = 60
+ do_radar_ref                        = 1,
+ hail_opt                            = 1,
+ prec_acc_dt                         = 60,
  /
 
  &fdda
@@ -105,10 +105,6 @@
  scalar_adv_opt                      = 1,
  /
 
- &dfi_control
- dfi_opt                             = 0
-/
-
  &bdy_control
  spec_bdy_width                      = 10,
  spec_zone                           = 1,
@@ -117,27 +113,26 @@
  nested                              = .false.,
  /
 
+ &afwa
+ afwa_diag_opt = 1,
+ afwa_ptype_opt = 1,
+ afwa_vil_opt = 1,
+ afwa_radar_opt = 1,
+ afwa_severe_opt = 1,
+ afwa_icing_opt = 1,
+ afwa_vis_opt = 1,
+ afwa_cloud_opt = 1,
+ afwa_therm_opt = 1,
+ afwa_turb_opt = 1,
+ afwa_buoy_opt = 1,
+ afwa_ptype_ccn_tmp = 264.15,
+ afwa_ptype_tot_melt = 50,
+ /
+ 
  &grib2
  /
 
  &namelist_quilt
  nio_tasks_per_group = 0,
  nio_groups = 1,
- / 
- 
- &afwa
- afwa_diag_opt              = 1,       
- afwa_ptype_opt             = 1,       
- afwa_vil_opt               = 1,       
- afwa_radar_opt             = 1,       
- afwa_severe_opt            = 1,      
- afwa_icing_opt             = 1,      
- afwa_vis_opt               = 1,      
- afwa_cloud_opt             = 1,      
- afwa_therm_opt             = 1,      
- afwa_turb_opt              = 1,       
- afwa_buoy_opt              = 1,       
- afwa_ptype_ccn_tmp         = 264.15,  
- afwa_ptype_tot_melt        = 50,      
- / 
- 
+ /
