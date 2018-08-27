@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=[num_upp_nodes]:ppn=[num_upp_processors]
-#PBS -N UPP
+#PBS -N WRF_UPP
 #PBS -l walltime=[upp_walltime]
 #PBS -A climlab
 

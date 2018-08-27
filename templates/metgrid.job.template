@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=[num_metgrid_nodes]:ppn=[num_metgrid_processors]
-#PBS -N METGRID
+#PBS -N WRF_METGRID
 #PBS -l walltime=[metgrid_walltime]
 #PBS -A climlab
 
