@@ -27,9 +27,9 @@ class JobSteps:
 	dataDir = ""
 	wrfDir = ""
 
-	def __init__(self, settings, modelParms, logger):
+	def __init__(self, settings, modelParms):
 		self.aSet = settings
-		self.logger = logger
+		self.logger = Logging.loggedPrint.instance()
 		self.modelParms = modelParms
 		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.wrfDir = settings.fetch("wrfdir")
@@ -193,9 +193,9 @@ class Postprocessing_Steps:
 	startTime = ""
 	wrfDir = ""
 
-	def __init__(self, settings, modelParms, logger):
+	def __init__(self, settings, modelParms):
 		self.aSet = settings
-		self.logger = logger
+		self.logger = Logging.loggedPrint.instance()
 		self.modelParms = modelParms
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")

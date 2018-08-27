@@ -18,15 +18,13 @@ import Logging
 # Application: Class responsible for running the program steps.
 class Application():			
 	def __init__(self):
-		curTime = datetime.date.today().strftime("%B%d%Y-%H%M%S")
-		curDir = os.path.dirname(os.path.abspath(__file__)) 	
-		logName = "wrf_gaea_run_" + str(curTime) + ".log"
-		logger = Logging.loggedPrint(curDir + '/' + logName)
+		curDir = os.path.dirname(os.path.abspath(__file__)) 
+		logger = Logging.loggedPrint.instance()
 	
 		logger.write("Initializing WRF Auto-Run Program")
 		#Step 1: Load program settings
 		logger.write(" 1. Loading program settings, Performing pre-run directory creations")
-		settings = ApplicationSettings.AppSettings(logger)
+		settings = ApplicationSettings.AppSettings()
 		modelParms = ModelData.ModelDataParameters(settings.fetch("modeldata"))
 		if not modelParms.validModel():
 			sys.exit("Program failed at step 1, model data source: " + settings.fetch("modeldata") + ", is not defined in the program.")
@@ -40,7 +38,7 @@ class Application():
 		logger.write(" 1. Done.")
 		#Step 2: Download Data Files
 		logger.write(" 2. Downloading Model Data Files")
-		modelData = ModelData.ModelData(settings, modelParms, logger)
+		modelData = ModelData.ModelData(settings, modelParms)
 		modelData.fetchFiles()
 		logger.write(" 2. Done")
 		#Step 3: Generate run files
@@ -56,7 +54,7 @@ class Application():
 		logger.write(" 3. Done")
 		#Step 4: Run the WRF steps
 		logger.write(" 4. Run WRF Steps")
-		jobs = Jobs.JobSteps(settings, modelParms, logger)
+		jobs = Jobs.JobSteps(settings, modelParms)
 		logger.write("  4.a. Checking for geogrid flag...")
 		if(settings.fetch("run_geogrid") == '1'):
 			logger.write("  4.a. Geogrid flag is set, preparing geogrid job.")
@@ -86,7 +84,7 @@ class Application():
 		#Step 5: Run postprocessing steps
 		if(settings.fetch("run_postprocessing") == '1'):
 			logger.write(" 5. Running post-processing")
-			post = Jobs.Postprocessing_Steps(settings, modelParms, logger)
+			post = Jobs.Postprocessing_Steps(settings, modelParms)
 			if(post.prepare_postprocessing() == False):
 				logger.write("   5. Error initializing unipost")
 				logger.close()			

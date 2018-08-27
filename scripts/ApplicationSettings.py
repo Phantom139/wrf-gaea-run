@@ -106,8 +106,8 @@ class AppSettings():
 	def whoami(self):
 		return self.myUserID
      
-	def __init__(self, logger):
-		self.logger = logger	
+	def __init__(self):
+		self.logger = Logging.loggedPrint.instance()	
 	
 		if(self.loadSettings() == False):
 			logger.write("Cannot init program, control.txt not found")
