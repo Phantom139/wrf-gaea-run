@@ -45,10 +45,13 @@ class JobSteps:
 	
 	def run_geogrid(self):
 		#
+		self.logger.write("run_geogrid(): Enter")
+		self.logger.write("run_geogrid(): Exit")
 		return None
 	
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
+		self.logger.write("run_ungrib(): Enter")
 		Tools.popen(self.aSet, "cp " + self.aSet.fetch("headdir") + "vtables/Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
 		Tools.popen(self.aSet, "mv namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
 		mParms = self.modelParms.fetch()
@@ -65,8 +68,10 @@ class JobSteps:
 					i += 1
 			Tools.popen(self.aSet, "chmod +x ungrib.csh")
 			Tools.popen(self.aSet, "./ungrib.csh")
+		self.logger.write("run_ungrib(): Exit")
 		
 	def run_metgrid(self):
+		self.logger.write("run_metgrid(): Enter")
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):	
 			Tools.popen(self.aSet, "qsub metgrid.job")
 			if(self.aSet.fetch("debugmode") == '1'):
@@ -88,8 +93,10 @@ class JobSteps:
 				wait2 = Wait.Wait(secondWait, timeDelay = 25)
 				wRC = wait2.hold()
 				if wRC == 1:
+					self.logger.write("run_metgrid(): Exit")
 					return True
 				elif wRC == 2:
+					self.logger.write("run_metgrid(): Exit (Failed, Code 2)")
 					return False
 			except Wait.TimeExpiredException:
 				sys.exit("metgrid.exe job not completed, abort.")
@@ -97,6 +104,7 @@ class JobSteps:
 		return False
 		
 	def run_real(self):
+		self.logger.write("run_real(): Enter")
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
 			Tools.popen(self.aSet, "qsub real.job")
 			if(self.aSet.fetch("debugmode") == '1'):
@@ -118,13 +126,16 @@ class JobSteps:
 				wait2 = Wait.Wait(secondWait, timeDelay = 60)
 				wRC = wait2.hold()
 				if wRC == 2:
+					self.logger.write("run_real(): Exit (Failed, Code 2)")
 					return False
 				else:
 					#Validate the presense of the two files.
 					file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
 					file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
 					if("yes" in file1 and "yes" in file2):
+						self.logger.write("run_real(): Exit")
 						return True
+					self.logger.write("run_real(): Exit (Failed, did not find wrfinput_d01 and wrfbdy_d01")
 					return False					
 			except Wait.TimeExpiredException:
 				sys.exit("real.exe job not completed, abort.")		
@@ -132,7 +143,14 @@ class JobSteps:
 		return False			
 		
 	def run_wrf(self):
+		self.logger.write("run_wrf(): Enter")
 		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
+			# Do a quick file check to ensure wrf can run
+			file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
+			file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
+			if(not ("yes" in file1 and "yes" in file2)):
+				self.logger.write("run_wrf(): Exit (Failed, cannot run wrf.exe without wrfinput_d01 and wrfbdy_d01)")
+				return False
 			# Remove the old log files as these are no longer needed
 			Tools.popen(self.aSet, "rm output/rsl.out.*")
 			Tools.popen(self.aSet, "rm output/rsl.error.*")	
@@ -158,8 +176,10 @@ class JobSteps:
 				wait2 = Wait.Wait(secondWait, timeDelay = 180)
 				wRC = wait2.hold()
 				if wRC == 2:
+					self.logger.write("run_wrf(): Exit (Failed, Code 2)")
 					return False
 				else:
+					self.logger.write("run_wrf(): Exit")
 					return True				
 			except Wait.TimeExpiredException:
 				sys.exit("wrf.exe job not completed, abort.")				
