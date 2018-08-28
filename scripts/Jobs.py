@@ -307,9 +307,7 @@ class Postprocessing_Steps:
 			for iFile in fLogs:
 				try:
 					wCond = [{"waitCommand": "tail -n 2 " + iFile, "contains": "PROGRAM UNIFIED_POST HAS ENDED", "retCode": 1},
-							  {"waitCommand": "tail -n 1 " + iFile, "contains": "fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 1 " + iFile, "contains": "runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 1 " + iFile, "contains": "error", "retCode": 2},]
+							  {"waitCommand": "tail -n 3 " + iFile, "contains": "Primary job  terminated normally, but 1 process returned", "retCode": 2},]
 					waitCond = Wait.Wait(wCond, timeDelay = 60)
 					wRC = waitCond.hold()
 					if wRC == 2:
@@ -321,11 +319,13 @@ class Postprocessing_Steps:
 			fCountTest = Tools.popen(self.aSet, "ls -l WRFPRS*")
 			cmdTxt = fCountTest.fetch()
 			strCount = fCountTest[fCountTest.rfind('F'):]
+			self.logger.write("  5.b. All UPP jobs completed (F" + int(strCount) + " found).")
 			if(not (int(strCount)) == (fileCount - 1)):
 				self.logger.write("  5.b. Error: Number of expected files (" + fileCount + ") does not match actual count (" + int(strCount) + 1 + ").")
 				Tools.Process.instance().Unlock()
 				return False
 			# Now that we have our PRS files, we can convert those to CTL files
+			self.logger.write("  5.b. Running GRIB to CTL process.")
 			if(self.aSet.fetch("unipost_out") == "grib"):
 				for fHour in range(0, fileCount):
 					fStr = "0" + str(fHour) if fHour < 10 else str(fHour)
@@ -337,5 +337,6 @@ class Postprocessing_Steps:
 					inFile = "WRFPRS.GrbF" + fStr
 					Tools.popen(self.aSet, uppDir + "scripts/g2ctl.pl " + self.postDir + '/' + inFile + " > " + self.postDir + "/wrfprs_f" + fStr + ".ctl")
 			#To-Do Note: Fork off to GrADS here...
+			self.logger.write("  5.b. GRIB to CTL processes completed.")
 			Tools.Process.instance().Unlock()
 			return True
