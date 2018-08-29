@@ -19,13 +19,6 @@
     <field_datatype>fltng_pnt</field_datatype>
     <comprs_type>lossless</comprs_type>
 
-	<param>
-		<shortname>PRES_ON_HYBRID_LVL</shortname>
-		<pname>PRES</pname>
-		<level>1. 2. 3. 4. 5.</level>
-		<scale>6.0</scale>
-	</param>
-
 	<!-- RF: Surface Parameters to Save -->
 	
 	<!-- 
@@ -37,70 +30,6 @@
 		  For example, a scale of 3.0, would mean (1 / (2^3.0)), or a maximum precision of 1/8, typically preserve higher precision for important
 		   things like pressure and height, while most other variables can be 3 or 4.
 	-->
-		
-       <param>
-       <shortname>HGT_ON_HYBRID_LVL</shortname>
-       <pname>HGT</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>TMP_ON_HYBRID_LVL</shortname>
-       <pname>TMP</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>POT_ON_HYBRID_LVL</shortname>
-       <pname>POT</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>DPT_ON_HYBRID_LVL</shortname>
-       <pname>DPT</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>RH_ON_HYBRID_LVL</shortname>
-       <pname>RH</pname>
-       <level>1.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>UGRD_ON_HYBRID_LVL</shortname>
-       <pname>UGRD</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VGRD_ON_HYBRID_LVL</shortname>
-       <pname>VGRD</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VVEL_ON_HYBRID_LVL</shortname>
-       <pname>VVEL</pname>
-       <level>1.</level>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>REFD_ON_HYBRID_LVL</shortname>
-       <pname>REFD</pname>
-       <table_info>NCEP</table_info>
-       <level>1. 2.</level>
-       <scale>4.0</scale>
-       </param>
 
        <param>
        <shortname>HGT_ON_ISOBARIC_SFC</shortname>
@@ -149,12 +78,6 @@
        <pname>VVEL</pname>
        <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
        <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>PRES_ON_MEAN_SEA_LVL</shortname>
-       <pname>PRMSL</pname>
-       <scale>6.0</scale>
        </param>
 
        <param>
@@ -376,12 +299,6 @@
        </param>
 
        <param>
-       <shortname>PRES_ON_MEAN_SEA_LVL</shortname>
-       <pname>PRMSL</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
        <shortname>TMP_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
        <pname>TMP</pname>
        <scale>4.0</scale>
@@ -404,12 +321,6 @@
        <pname>POT</pname>
        <level>10.</level>
        <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>PRES_ON_SURFACE</shortname>
-       <pname>PRES</pname>
-       <scale>6.0</scale>
        </param>
 
    </paramset>
