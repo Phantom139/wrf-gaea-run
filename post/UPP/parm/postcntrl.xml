@@ -55,13 +55,6 @@
        </param>
 
        <param>
-       <shortname>SPFH_ON_HYBRID_LVL</shortname>
-       <pname>SPFH</pname>
-       <level>1.</level>
-       <scale>7.0</scale>
-       </param>
-
-       <param>
        <shortname>RH_ON_HYBRID_LVL</shortname>
        <pname>RH</pname>
        <level>1.</level>
@@ -162,27 +155,8 @@
        </param>
 
        <param>
-       <shortname>MSLET_ON_MEAN_SEA_LVL</shortname>
-       <pname>MSLET</pname>
-       <table_info>NCEP</table_info>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>PRES_ON_MEAN_SEA_LVL</shortname>
-       <pname>PRMSL</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
        <shortname>TMP_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
        <pname>TMP</pname>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>SPFH_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
-       <pname>SPFH</pname>
        <scale>4.0</scale>
        </param>
 
@@ -213,22 +187,6 @@
        </param>
 
        <param>
-       <shortname>PLPL_ON_SPEC_PRES_ABOVE_GRND</shortname>
-       <pname>PLPL</pname>
-       <table_info>NCEP</table_info>
-       <level>25500.</level>
-       <level2>0.</level2>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>SPFH_ON_SPEC_HGT_LVL_ABOVE_GRND_10m</shortname>
-       <pname>SPFH</pname>
-       <level>10.</level>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
        <shortname>PRES_ON_SURFACE</shortname>
        <pname>PRES</pname>
        <scale>6.0</scale>
@@ -247,57 +205,9 @@
        </param>
 
        <param>
-       <shortname>SPFH_ON_SURFACE</shortname>
-       <pname>SPFH</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
        <shortname>TMP_ON_SURFACE</shortname>
        <pname>TMP</pname>
        <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>TSOIL_ON_DEPTH_BEL_LAND_SFC</shortname>
-       <pname>TSOIL</pname>
-       <scale_fact_fixed_sfc1>2 2 2 2</scale_fact_fixed_sfc1>
-       <level>0. 10. 40. 100.</level>
-       <scale_fact_fixed_sfc2>2 2 2 2</scale_fact_fixed_sfc2>
-       <level2>10. 40. 100. 200.</level2>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>SOILW_ON_DEPTH_BEL_LAND_SFC</shortname>
-       <pname>SOILW</pname>
-       <table_info>NCEP</table_info>
-       <scale_fact_fixed_sfc1>2 2 2 2</scale_fact_fixed_sfc1>
-       <level>0. 10. 40. 100.</level>
-       <scale_fact_fixed_sfc2>2 2 2 2</scale_fact_fixed_sfc2>
-       <level2>10. 40. 100. 200.</level2>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>SOILL_ON_DEPTH_BEL_LAND_SFC</shortname>
-       <pname>SOILL</pname>
-       <table_info>NCEP</table_info>
-       <scale_fact_fixed_sfc1>2 2 2 2</scale_fact_fixed_sfc1>
-       <level>0. 10. 40. 100.</level>
-       <scale_fact_fixed_sfc2>2 2 2 2</scale_fact_fixed_sfc2>
-       <level2>10. 40. 100. 200.</level2>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>SOILM_ON_DEPTH_BEL_LAND_SFC</shortname>
-       <pname>SOILM</pname>
-       <scale_fact_fixed_sfc1>2</scale_fact_fixed_sfc1>
-       <level>0.</level>
-       <scale_fact_fixed_sfc2>2</scale_fact_fixed_sfc2>
-       <level2>200.</level2>
-       <scale>3.0</scale>
        </param>
 
        <param>
@@ -446,69 +356,6 @@
        </param>
 
        <param>
-       <shortname>TCDC_ON_HYBRID_LVL</shortname>
-       <pname>TCDC</pname>
-       <level>1. 2.</level>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>LCDC_ON_LOW_CLOUD_LYR</shortname>
-       <pname>LCDC</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>MCDC_ON_MID_CLOUD_LYR</shortname>
-       <pname>MCDC</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>HCDC_ON_HIGH_CLOUD_LYR</shortname>
-       <pname>HCDC</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>VIS_ON_SURFACE</shortname>
-       <pname>VIS</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>GSD_VIS_ON_CLOUD_TOP</shortname>
-       <pname>VIS</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>HGT_ON_LVL_OF_ADIAB_COND_FROM_SFC</shortname>
-       <pname>HGT</pname>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>PRES_ON_LVL_OF_ADIAB_COND_FROM_SFC</shortname>
-       <pname>PRES</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>HGT_ON_TROPOPAUSE</shortname>
-       <pname>HGT</pname>
-       <scale>6.0</scale>
-       </param>
-
-
-       <param>
-       <shortname>PRES_ON_SPEC_HGT_LVL_ABOVE_GRND_FDHGT</shortname>
-       <pname>PRES</pname>
-       <level>30. 50. 80. 100.</level>
-       <scale>3.0</scale>
-        </param>
-
-       <param>
        <shortname>UGRD_ON_SPEC_HGT_LVL_ABOVE_GRND</shortname>
        <level>80.</level>
        <scale>4.0</scale>
@@ -545,72 +392,15 @@
        </param>
 
        <param>
-       <shortname>HGT_ON_CLOUD_BASE</shortname>
-       <pname>HGT</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>HGT_ON_CLOUD_TOP</shortname>
-       <pname>HGT</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>TMP_ON_CLOUD_TOP</shortname>
-       <pname>TMP</pname>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
        <shortname>REFC_ON_ENTIRE_ATMOS</shortname>
        <pname>REFC</pname>
        <table_info>NCEP</table_info>
        <scale>4.0</scale>
        </param>
-
-       <param>
-       <shortname>REFD_ON_SPEC_HGT_LVL_ABOVE_GRND</shortname>
-       <pname>REFD</pname>
-       <table_info>NCEP</table_info>
-       <level>4000. 1000.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>HGT_ON_CLOUD_CEILING</shortname>
-       <pname>HGT</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>MSLET_ON_MEAN_SEA_LVL</shortname>
-       <pname>MSLET</pname>
-       <table_info>NCEP</table_info>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>PRES_ON_MEAN_SEA_LVL</shortname>
-       <pname>PRMSL</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>PRES_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
-       <pname>PRES</pname>
-       <scale>6.0</scale>
-       </param>
-
+	   
        <param>
        <shortname>TMP_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
        <pname>TMP</pname>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>SPFH_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
-       <pname>SPFH</pname>
        <scale>4.0</scale>
        </param>
 
@@ -634,82 +424,10 @@
        </param>
 
        <param>
-       <shortname>SPFH_ON_SPEC_HGT_LVL_ABOVE_GRND_10m</shortname>
-       <pname>SPFH</pname>
-       <level>10.</level>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
        <shortname>PRES_ON_SURFACE</shortname>
        <pname>PRES</pname>
        <scale>6.0</scale>
        </param>
-
-       <param>
-       <shortname>VEG_ON_SURFACE</shortname>
-       <pname>VEG</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>MSTAV_ON_DEPTH_BEL_LAND_SFC</shortname>
-       <pname>MSTAV</pname>
-       <table_info>NCEP</table_info>
-       <scale_fact_fixed_sfc1>2</scale_fact_fixed_sfc1>
-       <level>0.</level>
-       <scale_fact_fixed_sfc2>2</scale_fact_fixed_sfc2>
-       <level2>100.</level2>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>4LFTX_ON_SPEC_PRES_ABOVE_GRND</shortname>
-       <pname>4LFTX</pname>
-       <table_info>NCEP</table_info>
-       <level>18000.</level>
-       <level2>0.</level2>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>NLAT_ON_SURFACE</shortname>
-       <pname>NLAT</pname>
-       <table_info>NCEP</table_info>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>ELON_ON_SURFACE</shortname>
-       <pname>ELON</pname>
-       <table_info>NCEP</table_info>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>LAND_ON_SURFACE</shortname>
-       <pname>LAND</pname>
-       <scale>1.0</scale>
-       </param>
-      <param>
-      <shortname>NON_NADIR_SBT123_ON_TOP_OF_ATMOS</shortname>
-      <scale>4.0</scale>
-      </param>
-
-      <param>
-      <shortname>NON_NADIR_SBT124_ON_TOP_OF_ATMOS</shortname>
-      <scale>4.0</scale>
-      </param>
-
-      <param>
-      <shortname>SBT113_ON_TOP_OF_ATMOS</shortname>
-      <scale>4.0</scale>
-      </param>
-
-      <param>
-      <shortname>SBT114_ON_TOP_OF_ATMOS</shortname>
-      <scale>4.0</scale>
-      </param>
 
 
    </paramset>
