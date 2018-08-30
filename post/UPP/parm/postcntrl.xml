@@ -20,77 +20,6 @@
     <comprs_type>lossless</comprs_type>
 
        <param>
-       <shortname>PRES_ON_HYBRID_LVL</shortname>
-       <pname>PRES</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>HGT_ON_HYBRID_LVL</shortname>
-       <pname>HGT</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>TMP_ON_HYBRID_LVL</shortname>
-       <pname>TMP</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>POT_ON_HYBRID_LVL</shortname>
-       <pname>POT</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>DPT_ON_HYBRID_LVL</shortname>
-       <pname>DPT</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>RH_ON_HYBRID_LVL</shortname>
-       <pname>RH</pname>
-       <level>1.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>UGRD_ON_HYBRID_LVL</shortname>
-       <pname>UGRD</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VGRD_ON_HYBRID_LVL</shortname>
-       <pname>VGRD</pname>
-       <level>1. 2. 3. 4. 5.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VVEL_ON_HYBRID_LVL</shortname>
-       <pname>VVEL</pname>
-       <level>1.</level>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>REFD_ON_HYBRID_LVL</shortname>
-       <pname>REFD</pname>
-       <table_info>NCEP</table_info>
-       <level>1. 2.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
        <shortname>HGT_ON_ISOBARIC_SFC</shortname>
        <pname>HGT</pname>
        <level>200. 500. 700. 1000. 2000. 3000. 5000. 7000. 7500. 10000. 12500. 15000. 17500. 20000. 22500. 25000. 27500. 30000. 32500. 35000. 37500. 40000. 42500. 45000. 
@@ -365,30 +294,6 @@
        <shortname>VGRD_ON_SPEC_HGT_LVL_ABOVE_GRND</shortname>
        <level>80.</level>
        <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>UGRD_ON_SPEC_PRES_ABOVE_GRND</shortname>
-       <pname>UGRD</pname>
-       <level>3000. 6000. 9000. 12000. 15000. 18000.</level>
-       <level2>0. 3000. 6000. 9000. 12000. 15000.</level2>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VGRD_ON_SPEC_PRES_ABOVE_GRND</shortname>
-       <pname>VGRD</pname>
-       <level>3000. 6000. 9000. 12000. 15000. 18000.</level>
-       <level2>0. 3000. 6000. 9000. 12000. 15000.</level2>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VVEL_ON_SPEC_PRES_ABOVE_GRND</shortname>
-       <pname>VVEL</pname>
-       <level>3000. 9000. 18000.</level>
-       <level2>0. 6000. 15000.</level2>
-       <scale>5.0</scale>
        </param>
 
        <param>
