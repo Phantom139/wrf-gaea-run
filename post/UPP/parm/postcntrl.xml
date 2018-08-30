@@ -3,7 +3,7 @@
 <!--  Lin Gan:  20150416 validated -->
     <paramset>
     <datset>WRFPRS</datset>
-    <grid_num>101</grid_num>
+    <grid_num>4</grid_num>
     <sub_center>ncep_nco</sub_center>
     <version_no>v2003</version_no>
     <local_table_vers_no>local_tab_yes1</local_table_vers_no>
@@ -18,6 +18,135 @@
     <order_of_sptdiff>2nd_ord_sptdiff</order_of_sptdiff>
     <field_datatype>fltng_pnt</field_datatype>
     <comprs_type>lossless</comprs_type>
+
+       <param>
+       <shortname>PRES_ON_HYBRID_LVL</shortname>
+       <pname>PRES</pname>
+       <level>0.</level>
+       <scale>6.0</scale>
+       </param>
+
+       <param>
+       <shortname>HGT_ON_HYBRID_LVL</shortname>
+       <pname>HGT</pname>
+       <level>0.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>TMP_ON_HYBRID_LVL</shortname>
+       <pname>TMP</pname>
+       <level>0.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>POT_ON_HYBRID_LVL</shortname>
+       <pname>POT</pname>
+       <level>0.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>DPT_ON_HYBRID_LVL</shortname>
+       <pname>DPT</pname>
+       <level>0.</level>
+       <scale>5.0</scale>
+       </param>
+
+	   <!--
+       <param>
+       <shortname>SPFH_ON_HYBRID_LVL</shortname>
+       <pname>SPFH</pname>
+       <level>0.</level>
+       <scale>7.0</scale>
+       </param>
+	   -->
+
+       <param>
+       <shortname>RH_ON_HYBRID_LVL</shortname>
+       <pname>RH</pname>
+       <level>0.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>UGRD_ON_HYBRID_LVL</shortname>
+       <pname>UGRD</pname>
+       <level>0.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>VGRD_ON_HYBRID_LVL</shortname>
+       <pname>VGRD</pname>
+       <level>0.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>VVEL_ON_HYBRID_LVL</shortname>
+       <pname>VVEL</pname>
+       <level>0.</level>
+       <scale>5.0</scale>
+       </param>
+
+       <param>
+       <shortname>REFD_ON_HYBRID_LVL</shortname>
+       <pname>REFD</pname>
+       <table_info>NCEP</table_info>
+       <level>0.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>HGT_ON_ISOBARIC_SFC</shortname>
+       <pname>HGT</pname>
+       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
+       <scale>6.0</scale>
+       </param>
+
+       <param>
+       <shortname>TMP_ON_ISOBARIC_SFC</shortname>
+       <pname>TMP</pname>
+       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
+       <scale>3.0</scale>
+       </param>
+
+       <param>
+       <shortname>DPT_ON_ISOBARIC_SFC</shortname>
+       <pname>DPT</pname>
+       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
+       <scale>5.0</scale>
+       </param>
+
+       <param>
+       <shortname>RH_ON_ISOBARIC_SFC</shortname>
+       <pname>RH</pname>
+       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
+       <scale>2.0</scale>
+       </param>
+
+       <param>
+       <shortname>UGRD_ON_ISOBARIC_SFC</shortname>
+       <pname>UGRD</pname>
+       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>VGRD_ON_ISOBARIC_SFC</shortname>
+       <pname>VGRD</pname>
+       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
+       <scale>4.0</scale>
+       </param>
+
+       <param>
+       <shortname>VVEL_ON_ISOBARIC_SFC</shortname>
+       <pname>VVEL</pname>
+       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
+       <scale>5.0</scale>
+       </param>
 
        <param>
        <shortname>TMP_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
@@ -54,12 +183,6 @@
        <param>
        <shortname>PRES_ON_SURFACE</shortname>
        <pname>PRES</pname>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>HGT_ON_SURFACE</shortname>
-       <pname>HGT</pname>
        <scale>6.0</scale>
        </param>
 
@@ -207,20 +330,6 @@
        </param>
 
        <param>
-       <shortname>CICEP_ON_SURFACE</shortname>
-       <pname>CICEP</pname>
-       <table_info>NCEP</table_info>
-       <scale>1.0</scale>
-       </param>
-
-       <param>
-       <shortname>CFRZR_ON_SURFACE</shortname>
-       <pname>CFRZR</pname>
-       <table_info>NCEP</table_info>
-       <scale>1.0</scale>
-       </param>
-
-       <param>
        <shortname>UGRD_ON_SPEC_HGT_LVL_ABOVE_GRND</shortname>
        <level>80.</level>
        <scale>4.0</scale>
@@ -233,12 +342,20 @@
        </param>
 
        <param>
+       <shortname>VVEL_ON_SPEC_PRES_ABOVE_GRND</shortname>
+       <pname>VVEL</pname>
+       <level>3000. 9000. 18000.</level>
+       <level2>0. 6000. 15000.</level2>
+       <scale>5.0</scale>
+       </param>
+
+       <param>
        <shortname>REFC_ON_ENTIRE_ATMOS</shortname>
        <pname>REFC</pname>
        <table_info>NCEP</table_info>
        <scale>4.0</scale>
        </param>
-	   
+
        <param>
        <shortname>TMP_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
        <pname>TMP</pname>
@@ -252,66 +369,11 @@
        </param>
 
        <param>
-       <shortname>RH_ON_SPEC_HGT_LVL_ABOVE_GRND_2m</shortname>
-       <pname>RH</pname>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
        <shortname>POT_ON_SPEC_HGT_LVL_ABOVE_GRND_10m</shortname>
        <pname>POT</pname>
        <level>10.</level>
        <scale>5.0</scale>
        </param>
-	   
-       <param>
-       <shortname>HGT_ON_ISOBARIC_SFC</shortname>
-       <pname>HGT</pname>
-       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>TMP_ON_ISOBARIC_SFC</shortname>
-       <pname>TMP</pname>
-       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
-       <scale>3.0</scale>
-       </param>
-
-       <param>
-       <shortname>DPT_ON_ISOBARIC_SFC</shortname>
-       <pname>DPT</pname>
-       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>RH_ON_ISOBARIC_SFC</shortname>
-       <pname>RH</pname>
-       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
-       <scale>2.0</scale>
-       </param>
-
-       <param>
-       <shortname>UGRD_ON_ISOBARIC_SFC</shortname>
-       <pname>UGRD</pname>
-       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VGRD_ON_ISOBARIC_SFC</shortname>
-       <pname>VGRD</pname>
-       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VVEL_ON_ISOBARIC_SFC</shortname>
-       <pname>VVEL</pname>
-       <level>20000. 25000. 30000. 50000. 70000. 85000. 92500. 100000.</level>
-       <scale>5.0</scale>
-       </param>	   
 
    </paramset>
    </postxml>
