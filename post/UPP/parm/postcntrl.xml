@@ -19,85 +19,6 @@
     <field_datatype>fltng_pnt</field_datatype>
     <comprs_type>lossless</comprs_type>
 
-       <param>
-       <shortname>PRES_ON_HYBRID_LVL</shortname>
-       <pname>PRES</pname>
-       <level>0.</level>
-       <scale>6.0</scale>
-       </param>
-
-       <param>
-       <shortname>HGT_ON_HYBRID_LVL</shortname>
-       <pname>HGT</pname>
-       <level>0.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>TMP_ON_HYBRID_LVL</shortname>
-       <pname>TMP</pname>
-       <level>0.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>POT_ON_HYBRID_LVL</shortname>
-       <pname>POT</pname>
-       <level>0.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>DPT_ON_HYBRID_LVL</shortname>
-       <pname>DPT</pname>
-       <level>0.</level>
-       <scale>5.0</scale>
-       </param>
-
-	   <!--
-       <param>
-       <shortname>SPFH_ON_HYBRID_LVL</shortname>
-       <pname>SPFH</pname>
-       <level>0.</level>
-       <scale>7.0</scale>
-       </param>
-	   -->
-
-       <param>
-       <shortname>RH_ON_HYBRID_LVL</shortname>
-       <pname>RH</pname>
-       <level>0.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>UGRD_ON_HYBRID_LVL</shortname>
-       <pname>UGRD</pname>
-       <level>0.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VGRD_ON_HYBRID_LVL</shortname>
-       <pname>VGRD</pname>
-       <level>0.</level>
-       <scale>4.0</scale>
-       </param>
-
-       <param>
-       <shortname>VVEL_ON_HYBRID_LVL</shortname>
-       <pname>VVEL</pname>
-       <level>0.</level>
-       <scale>5.0</scale>
-       </param>
-
-       <param>
-       <shortname>REFD_ON_HYBRID_LVL</shortname>
-       <pname>REFD</pname>
-       <table_info>NCEP</table_info>
-       <level>0.</level>
-       <scale>4.0</scale>
-       </param>
 
        <param>
        <shortname>HGT_ON_ISOBARIC_SFC</shortname>
@@ -106,6 +27,7 @@
        <scale>6.0</scale>
        </param>
 
+	   <!--
        <param>
        <shortname>TMP_ON_ISOBARIC_SFC</shortname>
        <pname>TMP</pname>
@@ -374,6 +296,7 @@
        <level>10.</level>
        <scale>5.0</scale>
        </param>
+	   -->
 
    </paramset>
    </postxml>
