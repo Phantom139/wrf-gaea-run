@@ -29,7 +29,7 @@ class Application():
 			sys.exit("Program failed at step 1, model data source: " + settings.fetch("modeldata") + ", is not defined in the program.")
 		logger.write(" - Settings loaded, model data source " + settings.fetch("modeldata") + " applied to the program.")
 		prc = Cleanup.PostRunCleanup(settings)
-		prc.performClean()
+		prc.performClean(cleanAll = False, cleanOutFiles = True, cleanErrorFiles = True, cleanInFiles = True, cleanWRFOut = False, cleanModelData = False)
 		mParms = modelParms.fetch()
 		if(settings.fetch("run_prerunsteps") == '1'):
 			Tools.popen(settings, "mkdir " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8])
