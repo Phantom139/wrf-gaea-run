@@ -20,8 +20,15 @@ wrfdir /data1/climlab/runs
 wrfmodule wrf/wrf-3.9.1
 modeldata CFSv2
 debugmode 0
+# Job Step Parameters
+run_prerunsteps 1
+run_geogrid 0
+run_ungrib 1
+run_metgrid 1
+run_real 1
+run_wrf 1
 # Geogrid Parameters
-run_geogrid 0 #run_geogrid: Flag this parameter as 1 if the grid has been updated, otherwise geogrid can be skipped to use the existing grid
+
 num_geogrid_nodes 2
 num_geogrid_processors 5
 geogrid_walltime 06:00:00

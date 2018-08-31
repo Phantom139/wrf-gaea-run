@@ -57,7 +57,12 @@ Would store the value of 12 in a parameter named myvar for the file. Any line th
   * wrfdir: The path to where you want model runs to occur on your machine
   * wrfmodule: The name of the WRF module on your cluster (Added via module add wrfmodule)
   * modeldata: The data source used in this run (*See the section below on adding model sources if you want to use something other than CFSv2*)
+  * run_prerunsteps: A 1/0 flag used to designate if the pre-run steps, including symlinks and directory creations are needed. Typically, this is left as 1 unless debugging
   * run_geogrid: A 1/0 flag used to designate if the geogrid process needs to be run, if you are using the same grid space, run geogrid once and copy the resulting geo_em file to the run_files/ folder, then set the parameter to 0, otherwise geogrid will run.
+  * run_ungrib: A 1/0 flag used to designate if the ungrib process needs to be run, only turn off if you are debugging a latter step
+  * run_metgrid: A 1/0 flag used to designate if the metgrid process needs to be run, only turn off if you are debugging a latter step
+  * run_real: A 1/0 flag used to designate if the real process needs to be run, only turn off if you are debugging a latter step
+  * run_wrf: A 1/0 flag used to designate if the WRF process needs to be run, only turn off if you are debugging a latter step
   * num_geogrid_nodes: The number of CPU nodes to use in the geogrid process
   * num_geogrid_processors: The number of CPU processors to use in the geogrid process
   * geogrid_walltime: The maximum wall time to be required by the geogrid process
