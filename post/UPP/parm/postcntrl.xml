@@ -19,7 +19,6 @@
     <field_datatype>fltng_pnt</field_datatype>
     <comprs_type>lossless</comprs_type>
 
-
        <param>
        <shortname>HGT_ON_ISOBARIC_SFC</shortname>
        <pname>HGT</pname>
@@ -27,7 +26,6 @@
        <scale>6.0</scale>
        </param>
 
-	   <!--
        <param>
        <shortname>TMP_ON_ISOBARIC_SFC</shortname>
        <pname>TMP</pname>
@@ -238,20 +236,6 @@
        </param>
 
        <param>
-       <shortname>INST_CRAIN_ON_SURFACE</shortname>
-       <pname>CRAIN</pname>
-       <table_info>NCEP</table_info>
-       <scale>1.0</scale>
-       </param>
-
-       <param>
-       <shortname>CSNOW_ON_SURFACE</shortname>
-       <pname>CSNOW</pname>
-       <table_info>NCEP</table_info>
-       <scale>1.0</scale>
-       </param>
-
-       <param>
        <shortname>UGRD_ON_SPEC_HGT_LVL_ABOVE_GRND</shortname>
        <level>80.</level>
        <scale>4.0</scale>
@@ -296,7 +280,6 @@
        <level>10.</level>
        <scale>5.0</scale>
        </param>
-	   -->
 
    </paramset>
    </postxml>
