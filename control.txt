@@ -22,11 +22,11 @@ modeldata CFSv2
 debugmode 0
 # Job Step Parameters
 run_prerunsteps 1
-run_geogrid 0
-run_ungrib 1
-run_metgrid 1
-run_real 1
-run_wrf 1
+run_geogrid 1
+run_ungrib 0
+run_metgrid 0
+run_real 0
+run_wrf 0
 # Geogrid Parameters
 
 num_geogrid_nodes 2
@@ -47,9 +47,9 @@ num_wrf_nodes 8
 num_wrf_processors 12
 wrf_walltime 48:00:00
 # Post-Processing Parameters
-run_postprocessing 1
+run_postprocessing 0
 # - If using UPP (Unipost) with GRADS, use the below
-post_run_unipost 1
+post_run_unipost 0
 unipost_out grib2
 num_upp_nodes 4
 num_upp_processors 8

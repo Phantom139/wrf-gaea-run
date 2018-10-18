@@ -65,12 +65,11 @@ class Application():
 		jobs = Jobs.JobSteps(settings, modelParms)
 		logger.write("  4.a. Checking for geogrid flag...")
 		if(settings.fetch("run_geogrid") == '1'):
-			logger.write("  4.a. Geogrid flag is set, preparing geogrid job.")
-			#Tools.Process.instance().HoldUntilOpen(breakTime = 86400)
-			#Tools.Process.instance().Lock()			
-			jobs.run_geogrid()
-			#Tools.Process.instance().Unlock()
-			logger.write("  4.a. Geogrid job Done")
+			if(jobs.run_geogrid() == False):
+				logger.write("   4.a. Error at Geogrid.exe")
+				logger.close()		
+				sys.exit("   4.a. ERROR: Geogrid.exe process failed to complete, check error file.")
+
 		else:
 			logger.write("  4.a. Geogrid flag is not set, skipping step")
 		logger.write("  4.a. Done")

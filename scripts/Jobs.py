@@ -43,10 +43,42 @@ class JobSteps:
 		Tools.popen(self.aSet, "mv wrf.job " + self.wrfDir + '/' + self.startTime[0:8])
 	
 	def run_geogrid(self):
-		#
+		Tools.Process.instance().Lock()
 		self.logger.write("run_geogrid(): Enter")
-		self.logger.write("run_geogrid(): Exit")
-		return None
+		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):	
+			Tools.popen(self.aSet, "qsub geogrid.job")
+			if(self.aSet.fetch("debugmode") == '1'):
+				self.logger.write("Debug mode is active, skipping")
+				Tools.Process.instance().Unlock()
+				return True
+			#Submit a wait condition for the file to appear
+			try:
+				firstWait = [{"waitCommand": "(ls geogrid.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				wait1 = Wait.Wait(firstWait, timeDelay = 25)
+				wait1.hold()
+			except Wait.TimeExpiredException:
+				sys.exit("geogrid.exe job not completed, abort.")
+			#Now wait for the output file to be completed
+			try:
+				secondWait = [{"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "Successful completion of program metgrid.exe", "retCode": 1},
+							  {"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "error", "retCode": 2},]
+				wait2 = Wait.Wait(secondWait, timeDelay = 25)
+				wRC = wait2.hold()
+				if wRC == 1:
+					self.logger.write("run_geogrid(): Exit")
+					Tools.Process.instance().Unlock()
+					return True
+				elif wRC == 2:
+					self.logger.write("run_geogrid(): Exit (Failed, Code 2)")
+					Tools.Process.instance().Unlock()
+					return False
+			except Wait.TimeExpiredException:
+				sys.exit("geogrid.exe job not completed, abort.")
+		self.logger.write("run_geogrid(): Failed to enter run directory")
+		Tools.Process.instance().Unlock()
+		return False
 	
 	def run_ungrib(self):	
 		#ungrib.exe needs to run in the data directory
