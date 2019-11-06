@@ -9,50 +9,88 @@
 #    EX: myVariable 12 This is a sample variable
 #    This is also an acceptable format for this file
 #
-# General Parameters
-starttime 2018061000 #starttime: The model initialization time in format YYYYMMDDHH (HH in UTC)
-rundays 1
-runhours 0
+# Application Parameters
+debugmode 0 #Leave this as zero unless debugging the wrf-run package
+sourcefile /data1/climlab/wrf-gaea-run/source
 geogdir /data1/climlab/wrf_geog
-tabledir /data1/climlab/shared_tables
+tabledir /data1/climlab/wrf-gaea-run/vtables
+constantsdir /data1/climlab/wrf-gaea-run/constants
 datadir /data1/climlab/model_data
 wrfdir /data1/climlab/runs
-wrfmodule wrf/wrf-3.9.1
-modeldata CFSv2
-debugmode 0
-# Job Step Parameters
-run_prerunsteps 1
-run_geogrid 1
-run_ungrib 0
-run_metgrid 0
-run_real 0
-run_wrf 0
+wrfexecutables /home/local/stow/WRF-4.1/bin/
+wrfrunfiles /home/local/stow/WRF-4.1/run/
+wpsexecutables /home/local/stow/WPS-4.1/bin/
+uppexecutables /home/local/stow/UPP-3.2/bin/
+postdir /data1/climlab/wrf-gaea-run/post
+condamodule run-wrf
+# General Parameters
+starttime 2019052600 #starttime: The model initialization time in format YYYYMMDDHH (HH in UTC)
+rundays 2
+runhours 21
+modeldata NARR
+modeldataforecasthour 0
+# Job Step Flags (1 - On, 0 - Off)
+run_prerunsteps 1 #NOTE: This should ALWAYS be on unless debugging.
+run_geogrid 0
+run_preprocessing_jobs 1
+run_wrf 1
+run_postprocessing 0
+post_run_unipost 0
+post_run_python 1
+# Model Specific Parameters (Namelist controls)
+use_io_vars 1
+wrf_debug_level 0 #This is the debug_level parm in namelist, set to 0 for none, or 1000 for full.
+e_we 1400
+e_sn 900
+e_vert 45
+geog_data_res modis_15s+modis_fpar+modis_lai+30s
+dx_y 3750
+map_proj lambert
+ref_lat 38.5
+ref_lon -97.5
+truelat1 38.5
+truelat2 38.5
+stand_lon -97.5
+p_top_requested 10000
+num_metgrid_levels 30
+num_metgrid_soil_levels 4
+mp_physics 8
+ra_lw_physics 1
+ra_sw_physics 1
+radt 10
+sf_sfclay_physics 1
+sf_surface_physics 2
+bl_pbl_physics 5
+bldt 0
+cu_physics 0
+cudt 5
+num_soil_layers 4
+num_land_cat 20
+sf_urban_physics 0
+hail_opt 1
+prec_acc_dt 60
 # Geogrid Parameters
-
-num_geogrid_nodes 2
-num_geogrid_processors 5
-geogrid_walltime 06:00:00
-# Ungrib Parameters
-
-# Metgrid Parameters
-num_metgrid_nodes 2
-num_metgrid_processors 5
-metgrid_walltime 06:00:00
-# Real Parameters
-num_real_nodes 10
-num_real_processors 1
-real_walltime 02:00:00
+geogrid_walltime 02:00:00
+# Preprocessing Job Parameters
+num_prerun_nodes 2
+num_prerun_processors 5
+prerun_walltime 06:00:00
 # WRF Parameters
 num_wrf_nodes 8
 num_wrf_processors 12
 wrf_walltime 48:00:00
+# WRF MPI & IO Quilt Parameters
+wrf_numtiles 2
+wrf_nio_tasks_per_group 2
+wrf_nio_groups 4
+wrf_detect_proc_count 1
 # Post-Processing Parameters
-run_postprocessing 0
 # - If using UPP (Unipost) with GRADS, use the below
-post_run_unipost 0
 unipost_out grib2
-num_upp_nodes 4
-num_upp_processors 8
-upp_walltime 06:00:00
+num_upp_nodes 8
+upp_ensemble_nodes_per_hour 4
+upp_walltime 02:00:00
 # - If using Python, use the below
-post_run_python 0
+num_python_nodes 8
+python_threads_per_rank 4
+python_walltime 02:00:00

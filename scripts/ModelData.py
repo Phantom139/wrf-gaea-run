@@ -25,6 +25,16 @@ class ModelDataParameters():
 				"FileExtentions": ["3D", "FLX"],
 				"FGExt": "\'3D\', \'FLX\'",
 				"HourDelta": 6,
+				"ConstantsFile": "constant_file",
+				"CanDownloadDirectly": True,
+			},
+			"NARR": {
+				"VTable": ["Vtable.NARR"],
+				"FileExtentions": ["NARR"],
+				"FGExt": "NARR",
+				"HourDelta": 3,
+				"ConstantsFile": "NARR.constants",
+				"CanDownloadDirectly": False,
 			},
 		}	
 	
@@ -40,6 +50,7 @@ class ModelData():
 	modelParms = None
 	startTime = ""
 	dataDir = ""
+	dataForecastHour = 0
 	runDays = 1
 	runHours = 1
 
@@ -50,9 +61,11 @@ class ModelData():
 		self.startTime = datetime.datetime.strptime(settings.fetch("starttime"), "%Y%m%d%H")
 		self.runDays = settings.fetch("rundays")
 		self.runHours = settings.fetch("runhours")
+		self.dataForecastHour = settings.fetch("modeldataforecasthour")
 		logger = Tools.loggedPrint.instance()
 		logger.write(" - Initializing model data with the following settings:")
 		logger.write("  -> Model Data: " + settings.fetch("modeldata"))
+		logger.write("  -> Model Data Forecast Hour: " + settings.fetch("modeldataforecasthour"))
 		logger.write("  -> Data Directory: " + self.dataDir)
 		logger.write("  -> Initialization Time: " + self.startTime.strftime('%Y%m%d%H'))
 		logger.write("  -> Run Days: " + str(self.runDays))
@@ -62,9 +75,8 @@ class ModelData():
 		model = self.aSet.fetch("modeldata")
 		mParms = self.modelParms.fetch()
 		dirPath = self.dataDir + '/' + str(self.startTime.strftime('%Y%m%d%H'))
-		if not os.path.isdir(dirPath):
-			os.system("mkdir " + dirPath)
-	
+		logger = Tools.loggedPrint.instance()
+		
 		enddate = self.startTime + datetime.timedelta(days=int(self.runDays), hours=int(self.runHours))
 		dates = []
 		current = self.startTime
@@ -72,9 +84,21 @@ class ModelData():
 			dates.append(current)
 			current += datetime.timedelta(hours=mParms["HourDelta"])	
 			
-		t = ThreadPool(processes=6)
-		rs = t.map(self.pooled_download, dates)
-		t.close()
+		if(mParms["CanDownloadDirectly"] == True):
+			if not os.path.isdir(dirPath):
+				os.system("mkdir " + dirPath)	
+				
+			t = ThreadPool(processes=6)
+			rs = t.map(self.pooled_download, dates)
+			t.close()
+		else:	
+			if not os.path.isdir(dirPath):
+				logger.write("  - Error: The selected data source does not support automatic downloading, and the data directory is not found.")
+				logger.write("  - Please ensure the data is located in (" + dirPath + ") and try again.")
+				sys.exit("")
+			if not self.files_present(dates):
+				logger.write("  - Error: Missing required input data to run WRF and the source does not allow automatic downloading, abort.")
+				sys.exit("")
 	
 	def pooled_download(self, timeObject):
 		model = self.aSet.fetch("modeldata")
@@ -91,3 +115,20 @@ class ModelData():
 				os.system("wget " + pgrb2link + " -O " + pgrb2writ)
 			if not os.path.isfile(sgrb2writ):
 				os.system("wget " + sgrb2link + " -O " + sgrb2writ)	
+				
+	def files_present(self, date_list):
+		logger = Tools.loggedPrint.instance()
+		model = self.aSet.fetch("modeldata")
+		strTime = str(self.startTime.strftime('%Y%m%d%H'))
+		allGood = True
+		if(model == "CFSv2"):
+			# This one auto-downloads
+			pass
+		elif(model == "NARR"):
+			for oneDate in date_list:
+				fPath = self.dataDir + '/' + strTime + "/merged_AWIP32." + oneDate.strftime('%Y%m%d%H')
+				if not os.path.isfile(fPath):
+					logger.write("  - Error: Missing expected input file (" + fPath + ").")
+					allGood = False
+		return allGood
+			

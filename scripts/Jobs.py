@@ -10,12 +10,14 @@ import os.path
 import datetime
 import glob
 import time
+import math
 from multiprocessing.pool import ThreadPool
 import ApplicationSettings
 import ModelData
 import Tools
 import Wait
 import Template
+import PreparePyJob
 
 # JobSteps: Class responsible for handling the steps that involve job submission and checkup
 class JobSteps:
@@ -33,158 +35,148 @@ class JobSteps:
 		self.dataDir = settings.fetch("datadir") + '/' + settings.fetch("modeldata")
 		self.wrfDir = settings.fetch("wrfdir")
 		self.startTime = settings.fetch("starttime")
-		#Copy important files to the directory
+		# Copy important files to the directory
 		Tools.popen(self.aSet, "cp " + settings.fetch("headdir") + "run_files/* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
-		#Move the generated files to the run directory		
-		Tools.popen(self.aSet, "mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
-		Tools.popen(self.aSet, "mv geogrid.job " + self.wrfDir + '/' + self.startTime[0:8])
-		Tools.popen(self.aSet, "mv metgrid.job " + self.wrfDir + '/' + self.startTime[0:8])
-		Tools.popen(self.aSet, "mv real.job " + self.wrfDir + '/' + self.startTime[0:8])
-		Tools.popen(self.aSet, "mv wrf.job " + self.wrfDir + '/' + self.startTime[0:8])
+		# Copy required WRF files
+		Tools.popen(self.aSet, "cp " + self.aSet.fetch("wrfrunfiles") + "* " + self.wrfDir + '/' + self.startTime[0:8] + "/output")
+		# Move the generated files to the run directory		
+		Tools.popen(self.aSet, "mv namelist.input " + self.wrfDir + '/' + self.startTime[0:8] + "/output")	
 	
 	def run_geogrid(self):
 		Tools.Process.instance().Lock()
 		self.logger.write("run_geogrid(): Enter")
-		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):	
+		Tools.popen(self.aSet, "mv namelist.wps.geogrid " + self.wrfDir + '/' + self.startTime[0:8] + "/namelist.wps")
+		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):				
+			Tools.popen(self.aSet, "chmod +x geogrid.job")
 			Tools.popen(self.aSet, "qsub geogrid.job")
-			if(self.aSet.fetch("debugmode") == '1'):
-				self.logger.write("Debug mode is active, skipping")
-				Tools.Process.instance().Unlock()
-				return True
-			#Submit a wait condition for the file to appear
+			# Now wait for the log files
 			try:
 				firstWait = [{"waitCommand": "(ls geogrid.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
 				wait1 = Wait.Wait(firstWait, timeDelay = 25)
 				wait1.hold()
 			except Wait.TimeExpiredException:
-				sys.exit("geogrid.exe job not completed, abort.")
-			#Now wait for the output file to be completed
+				sys.exit("geogrid.exe job not completed, abort.")			
+			# Check for completion
+			self.logger.write("Log file detected, waiting for completion.")
 			try:
-				secondWait = [{"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "Successful completion of program metgrid.exe", "retCode": 1},
-							  {"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 3 geogrid.log.0000", "contains": "error", "retCode": 2},]
+				secondWait = [{"waitCommand": "tail -n 3 geogrid.log*", "contains": "Successful completion of program geogrid.exe", "retCode": 1},
+							  {"waitCommand": "tail -n 3 geogrid.log*", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 3 geogrid.log*", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 3 geogrid.log*", "contains": "error", "retCode": 2},]
 				wait2 = Wait.Wait(secondWait, timeDelay = 25)
-				wRC = wait2.hold()
-				if wRC == 1:
-					self.logger.write("run_geogrid(): Exit")
-					Tools.Process.instance().Unlock()
-					return True
-				elif wRC == 2:
+				wRC1 = wait2.hold()
+				if wRC1 == 1:
+					# Success condition, proceed to the next.
+					self.logger.write("Geogrid process sucessfully completed.")
+				elif wRC1 == 2:
 					self.logger.write("run_geogrid(): Exit (Failed, Code 2)")
 					Tools.Process.instance().Unlock()
 					return False
 			except Wait.TimeExpiredException:
-				sys.exit("geogrid.exe job not completed, abort.")
-		self.logger.write("run_geogrid(): Failed to enter run directory")
+				sys.exit("geogrid.exe job not completed, abort.")					
+		self.logger.write("run_geogrid(): Exit")
 		Tools.Process.instance().Unlock()
-		return False
 	
-	def run_ungrib(self):	
+	def run_preprocessing(self):	
 		#ungrib.exe needs to run in the data directory
 		Tools.Process.instance().Lock()
-		self.logger.write("run_ungrib(): Enter")
+		self.logger.write("run_preprocessing(): Enter")
 		Tools.popen(self.aSet, "cp " + self.aSet.fetch("headdir") + "vtables/Vtable." + self.aSet.fetch("modeldata") + "* " + self.wrfDir + '/' + self.startTime[0:8])
 		Tools.popen(self.aSet, "mv namelist.wps* " + self.wrfDir + '/' + self.startTime[0:8])
 		mParms = self.modelParms.fetch()
-		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
-			with open("ungrib.csh", 'w') as target_file:
-				target_file.write("module add " + self.aSet.fetch("wrfmodule") + '\n')
-				target_file.write("cd " + self.wrfDir + '/' + self.startTime[0:8] + '\n')
-				target_file.write("link_grib.csh " + self.dataDir + '/' + self.startTime + '/' + '\n')
-				i = 0
-				for ext in mParms["FileExtentions"]:
-					target_file.write("cp " + mParms["VTable"][i] + " Vtable" + '\n')
-					target_file.write("cp namelist.wps." + ext + " namelist.wps" + '\n')
-					target_file.write("ungrib.exe" + '\n')
-					i += 1
-			Tools.popen(self.aSet, "chmod +x ungrib.csh")
-			Tools.popen(self.aSet, "./ungrib.csh")
-		self.logger.write("run_ungrib(): Exit")
-		Tools.Process.instance().Unlock()
-		
-	def run_metgrid(self):
-		Tools.Process.instance().Lock()
-		self.logger.write("run_metgrid(): Enter")
-		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):	
-			Tools.popen(self.aSet, "qsub metgrid.job")
-			if(self.aSet.fetch("debugmode") == '1'):
-				self.logger.write("Debug mode is active, skipping")
-				Tools.Process.instance().Unlock()
-				return True
-			#Submit a wait condition for the file to appear
+		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):				
+			Tools.popen(self.aSet, "chmod +x prerun.job")
+			Tools.popen(self.aSet, "qsub prerun.job")
+			self.logger.write("Job has been submitted to the queue, waiting for log file to appear.")
+			# Now wait for the log files
 			try:
-				firstWait = [{"waitCommand": "(ls metgrid.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+				firstWait = [{"waitCommand": "(ls ungrib.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
 				wait1 = Wait.Wait(firstWait, timeDelay = 25)
 				wait1.hold()
 			except Wait.TimeExpiredException:
-				sys.exit("metgrid.exe job not completed, abort.")
-			#Now wait for the output file to be completed
+				sys.exit("ungrib.exe job not completed, abort.")			
+			# Check for completion
+			self.logger.write("Log file detected, waiting for completion.")
 			try:
-				secondWait = [{"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "Successful completion of program metgrid.exe", "retCode": 1},
-							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "error", "retCode": 2},]
+				secondWait = [{"waitCommand": "tail -n 3 ungrib.log*", "contains": "Successful completion of program ungrib.exe", "retCode": 1},
+							  {"waitCommand": "tail -n 3 ungrib.log*", "contains": "fatal", "retCode": 2},
+							  {"waitCommand": "tail -n 3 ungrib.log*", "contains": "runtime", "retCode": 2},
+							  {"waitCommand": "tail -n 3 ungrib.log*", "contains": "error", "retCode": 2},]
 				wait2 = Wait.Wait(secondWait, timeDelay = 25)
-				wRC = wait2.hold()
-				if wRC == 1:
-					self.logger.write("run_metgrid(): Exit")
-					Tools.Process.instance().Unlock()
-					return True
-				elif wRC == 2:
-					self.logger.write("run_metgrid(): Exit (Failed, Code 2)")
+				wRC1 = wait2.hold()
+				if wRC1 == 1:
+					# Success condition, proceed to the next.
+					self.logger.write("Ungrib process sucessfully completed, starting metgrid process.")
+					try:
+						thirdWait = [{"waitCommand": "(ls metgrid.log* && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+						wait3 = Wait.Wait(thirdWait, timeDelay = 25)
+						wait3.hold()
+					except Wait.TimeExpiredException:
+						sys.exit("metgrid.exe job not completed, abort.")
+					self.logger.write("Log file detected, waiting for completion.")
+					#Now wait for the output file to be completed
+					try:
+						fourthWait = [{"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "Successful completion of program metgrid.exe", "retCode": 1},
+									  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "fatal", "retCode": 2},
+									  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "runtime", "retCode": 2},
+									  {"waitCommand": "tail -n 3 metgrid.log.0000", "contains": "error", "retCode": 2},]
+						wait4 = Wait.Wait(fourthWait, timeDelay = 25)
+						wRC2 = wait4.hold()
+						if wRC2 == 1:
+							# Success Condition, proceed to real.exe
+							self.logger.write("Metgrid process sucessfully completed, starting real process.")
+							Tools.popen(self.aSet, "mv metgrid.log.0000 metgrid_log.txt")
+							Tools.popen(self.aSet, "rm metgrid.log.*")
+							try:
+								fifthWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
+								wait5 = Wait.Wait(fifthWait, timeDelay = 25)
+								wait5.hold()			
+							except Wait.TimeExpiredException:
+								sys.exit("real.exe job not completed, abort.")
+							self.logger.write("Log file detected, waiting for completion.")
+							#Now wait for the output file to be completed
+							try:
+								sixthWait = [{"waitCommand": "tail -n 3 output/rsl.out.0000", "contains": "SUCCESS COMPLETE REAL_EM", "retCode": 1},
+											  {"waitCommand": "tail -n 3 output/rsl.error.0000", "contains": "FATAL", "retCode": 2},
+											  {"waitCommand": "tail -n 3 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
+											  {"waitCommand": "tail -n 3 output/rsl.error.0000", "contains": "error", "retCode": 2},]
+								wait6 = Wait.Wait(sixthWait, timeDelay = 60)
+								wRC3 = wait6.hold()
+								if wRC3 == 2:
+									self.logger.write("run_preprocessing(): Exit (Failed at real, Code 2)")
+									Tools.Process.instance().Unlock()
+									return False
+								else:
+									# Copy the log files.
+									Tools.popen(self.aSet, "mv output/rsl.out.0000 real_log.txt")
+									Tools.popen(self.aSet, "mv output/rsl.error.0000 real_error_log.txt")									
+									#Validate the presense of the two files.
+									file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
+									file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
+									if("yes" in file1 and "yes" in file2):
+										self.logger.write("run_preprocessing(): Exit")
+										Tools.Process.instance().Unlock()
+										return True
+									self.logger.write("run_preprocessing(): Exit (Failed at real, did not find wrfinput_d01 and wrfbdy_d01")
+									Tools.Process.instance().Unlock()
+									return False					
+							except Wait.TimeExpiredException:
+								sys.exit("real.exe job not completed, abort.")							
+						elif wRC2 == 2:
+							self.logger.write("run_preprocessing(): Exit (Failed at metgrid, Code 2)")
+							Tools.Process.instance().Unlock()
+							return False
+					except Wait.TimeExpiredException:
+						sys.exit("metgrid.exe job not completed, abort.")					
+				elif wRC1 == 2:
+					self.logger.write("run_preprocessing(): Exit (Failed at ungrib, Code 2)")
 					Tools.Process.instance().Unlock()
 					return False
 			except Wait.TimeExpiredException:
-				sys.exit("metgrid.exe job not completed, abort.")
-		self.logger.write("run_metgrid(): Failed to enter run directory")
+				sys.exit("ungrib.exe job not completed, abort.")			
+		self.logger.write("run_preprocessing(): Failed to enter run directory")
 		Tools.Process.instance().Unlock()
-		return False
-		
-	def run_real(self):
-		Tools.Process.instance().Lock()
-		self.logger.write("run_real(): Enter")
-		with Tools.cd(self.wrfDir + '/' + self.startTime[0:8]):
-			Tools.popen(self.aSet, "qsub real.job")
-			if(self.aSet.fetch("debugmode") == '1'):
-				self.logger.write("Debug mode is active, skipping")
-				Tools.Process.instance().Unlock()
-				return True			
-			#Submit a wait condition for the file to appear
-			try:
-				firstWait = [{"waitCommand": "(ls output/rsl.out.0000 && echo \"yes\") || echo \"no\"", "contains": "yes", "retCode": 1}]
-				wait1 = Wait.Wait(firstWait, timeDelay = 25)
-				wait1.hold()			
-			except Wait.TimeExpiredException:
-				sys.exit("real.exe job not completed, abort.")
-			#Now wait for the output file to be completed
-			try:
-				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS", "retCode": 1},
-							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "fatal", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "runtime", "retCode": 2},
-							  {"waitCommand": "tail -n 1 output/rsl.error.0000", "contains": "error", "retCode": 2},]
-				wait2 = Wait.Wait(secondWait, timeDelay = 60)
-				wRC = wait2.hold()
-				if wRC == 2:
-					self.logger.write("run_real(): Exit (Failed, Code 2)")
-					Tools.Process.instance().Unlock()
-					return False
-				else:
-					#Validate the presense of the two files.
-					file1 = os.popen("(ls output/wrfinput_d01 && echo \"yes\") || echo \"no\"").read()
-					file2 = os.popen("(ls output/wrfbdy_d01 && echo \"yes\") || echo \"no\"").read()
-					if("yes" in file1 and "yes" in file2):
-						self.logger.write("run_real(): Exit")
-						Tools.Process.instance().Unlock()
-						return True
-					self.logger.write("run_real(): Exit (Failed, did not find wrfinput_d01 and wrfbdy_d01")
-					Tools.Process.instance().Unlock()
-					return False					
-			except Wait.TimeExpiredException:
-				sys.exit("real.exe job not completed, abort.")		
-		self.logger.write("run_real(): Failed to enter run directory")
-		Tools.Process.instance().Unlock()
-		return False			
+		return False	
 		
 	def run_wrf(self):
 		Tools.Process.instance().Lock()
@@ -200,7 +192,10 @@ class JobSteps:
 			# Remove the old log files as these are no longer needed
 			Tools.popen(self.aSet, "rm output/rsl.out.*")
 			Tools.popen(self.aSet, "rm output/rsl.error.*")	
+			# chmod the job and submit
+			Tools.popen(self.aSet, "chmod +x wrf.job")			
 			Tools.popen(self.aSet, "qsub wrf.job")
+			self.logger.write("Job has been submitted to the queue, waiting for log file to appear.")
 			if(self.aSet.fetch("debugmode") == '1'):
 				self.logger.write("Debug mode is active, skipping")
 				Tools.Process.instance().Unlock()
@@ -212,6 +207,7 @@ class JobSteps:
 				wait1.hold()			
 			except Wait.TimeExpiredException:
 				sys.exit("wrf.exe job not completed, abort.")
+			self.logger.write("Log file detected, waiting for completion.")
 			#Now wait for the output file to be completed (Note: Allow 7 days from the output file first appearing to run)
 			try:
 				secondWait = [{"waitCommand": "tail -n 1 output/rsl.out.0000", "contains": "SUCCESS COMPLETE WRF", "retCode": 1},
@@ -226,6 +222,10 @@ class JobSteps:
 					Tools.Process.instance().Unlock()
 					return False
 				else:
+					Tools.popen(self.aSet, "mv output/rsl.out.0000 wrf_log.txt")
+					Tools.popen(self.aSet, "mv output/rsl.error.0000 wrf_error_log.txt")
+					Tools.popen(self.aSet, "rm output/rsl.out.*")
+					Tools.popen(self.aSet, "rm output/rsl.error.*")					
 					self.logger.write("run_wrf(): Exit")
 					Tools.Process.instance().Unlock()
 					return True				
@@ -267,7 +267,7 @@ class Postprocessing_Steps:
 				self.logger.write("  5.a. Error: Neither GRIB or GRIB2 is defined for UPP output processing, please modify control.txt, aborting")
 				Tools.Process.instance().Unlock()
 				return False
-			
+			Tools.popen(self.aSet, "cp " + self.aSet.fetch("uppexecutables") + "unipost.exe " + self.postDir)
 			Tools.popen(self.aSet, "ln -sf " + uppDir + "scripts/cbar.gs " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/nam_micro_lookup.dat " + self.postDir)
 			Tools.popen(self.aSet, "ln -fs " + uppDir + "parm/hires_micro_lookup.dat " + self.postDir)
@@ -276,8 +276,7 @@ class Postprocessing_Steps:
 			Tools.Process.instance().Unlock()
 			return True
 		elif(self.aSet.fetch("post_run_python") == '1'):
-			self.logger.write("  5.a. Python Flagged Active")
-			self.logger.write("  5.a. Done")
+			self.logger.write("  5.a. Python Flagged Active, no pre-job work required.")
 			Tools.Process.instance().Unlock()
 			return True
 		else:
@@ -289,27 +288,35 @@ class Postprocessing_Steps:
 		if(self.aSet.fetch("post_run_unipost") == '1'):
 			return self.run_postprocessing_upp()
 		elif(self.aSet.fetch("post_run_python") == '1'):
-			return True
+			post = PreparePyJob.PreparePyJob(self.aSet, self.wrfDir + '/' + self.startTime[0:8] + "/output", self.postDir)
+			return post.prepare_job()
 		else:
 			sys.exit("Error: run_postprocessing() called without a mode flagged, abort.")
 			return False
 		
 	def run_postprocessing_upp(self):
-		# We run unipost in a single job by assembling all of out wrfout files and writing the UPP steps into one file for each
+		# Unipost needs to be run across multiple jobs that are broken up 24 hours of forecast per job.
+		#  this is done to prevent the job time limit from expiring while UPP is running.
 		Tools.Process.instance().Lock()
-		tWrite = Template.Template_Writer(self.aSet)
 		curDir = os.path.dirname(os.path.abspath(__file__)) 
-		temDir = self.aSet.fetch("headdir") + "templates/"
 		uppDir = self.aSet.fetch("headdir") + "post/UPP/"
-		uppNodes = self.aSet.fetch("num_upp_nodes")
-		uppProcs = self.aSet.fetch("num_upp_processors")
-		total = int(uppNodes) * int(uppProcs)
-		fList = glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*")
+		fList = sorted(glob.glob(self.wrfDir + '/' + self.startTime[0:8] + "/output/wrfout*"))
 		fileCount = len(fList)
 		fLogs = []
+		upp_job_contents = ""
 		self.logger.write("  5.b. Running UPP on " + str(fileCount) + " wrfout files")
+		
+		upp_job_contents += "#!/bin/bash\n"
+		
+		upp_job_contents += "#PBS -l nodes=" + settings.fetch("num_upp_nodes") + ":ppn=" + settings.fetch("num_upp_processors") + "\n"
+		upp_job_contents += "#PBS -N WRF_UPP" + "\n"
+		upp_job_contents += "#PBS -l walltime=" + settings.fetch("upp_walltime") + "\n"
+		upp_job_contents += "#PBS -A climlab" + "\n\n"
+		upp_job_contents += "source " + self.aSet.fetch("sourcefile") + "\n"
+		upp_job_contents += "ulimit -s unlimited\n\n"
+		upp_job_contents += "cd " + self.aSet.fetch("wrfdir") + '/' + self.aSet.fetch("starttime")[0:8] + "/postprd" + "\n\n"		
+		
 		with Tools.cd(self.postDir):
-			upp_job_contents = ""
 			for iFile in fList:
 				dNum = iFile[-23:-20]
 				year = iFile[-19:-15]
@@ -332,23 +339,30 @@ class Postprocessing_Steps:
 				upp_job_contents += '\n' + "rm fort.*"
 				if(self.aSet.fetch("unipost_out") == "grib"):
 					upp_job_contents += "\nln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14"
-				upp_job_contents += "\n" + "mpirun -np " + str(total) + " unipost.exe > " + logName + '\n' + '\n'
-				# Create the job file, then submit it.
-				tWrite.generateTemplatedFile(temDir + "upp.job.template", "upp.job", extraKeys = {"[upp_job_contents]": upp_job_contents})
-			# Once the file has been written, submit the job.
-			Tools.popen(self.aSet, "qsub upp.job")
+				
+				aprun = "mpirun -np " + (int(settings.fetch("num_upp_nodes")) * int(settings.fetch("num_upp_processors"))) + " unipost.exe > " + logName + " &\n"
+				aprun += "sleep 5\n"
+				upp_job_contents += "\n" + aprun + '\n\n'
+				
+				aprun = ""
+
+			upp_job_contents += "wait\necho \"Job Complete\""
+			with open("upp.job", 'w') as target_file:
+				target_file.write(upp_job_contents)
+			Tools.popen(self.aSet, "chmod +x upp.job")
+			self.logger.write("   -> Submitting upp job to the queue")
+			jobSub = Tools.popen(self.aSet, "qsub upp.job")
+			self.logger.write("   -> Job file submitted, wait for " + jobSub.fetch()[0].rstrip("\n\r") + ".output")
 			# Wait for all logs to flag as job complete
-			for iFile in fLogs:
-				try:
-					wCond = [{"waitCommand": "tail -n 2 " + iFile, "contains": "PROGRAM UNIFIED_POST HAS ENDED", "retCode": 1},
-							  {"waitCommand": "tail -n 3 " + iFile, "contains": "Primary job  terminated normally, but 1 process returned", "retCode": 2},]
-					waitCond = Wait.Wait(wCond, timeDelay = 60)
-					wRC = waitCond.hold()
-					if wRC == 2:
-						Tools.Process.instance().Unlock()
-						return False			
-				except Wait.TimeExpiredException:
-					sys.exit("unipost.exe job not completed, abort.")
+			try:
+				wCond = [{"waitCommand": "tail -n 2 " + jobSub.fetch()[0].rstrip("\n\r") + ".output", "contains": "Job Complete", "retCode": 1},]
+				waitCond = Wait.Wait(wCond, timeDelay = 60)
+				wRC = waitCond.hold()			
+				if wRC == 1:
+					Tools.Process.instance().Unlock()
+			except Wait.TimeExpiredException:
+				sys.exit("unipost.exe job not completed, abort.")
+			self.logger.write("   -> Unipost Job Completed, Verifying files.")
 			# Run a quick ls -l test to ensure the number of files present matches what we're expecting
 			fCountTest = Tools.popen(self.aSet, "ls -l WRFPRS*")
 			cmdTxt = fCountTest.fetch()

@@ -49,11 +49,16 @@ class AppSettings():
 		try:
 			return self.settings[key]
 		except KeyError:
-			print("Key does not exist")
+			print("Key (" + str(key) + ") does not exist")
 			return None    
 			
+	def add_replacementKey(self, key, value):
+		self.replacementKeys[key] = value
+		self.logger.write("Additional replacement key added: " + str(key) + " = " + str(value))
+			
 	def assembleKeys(self):	
-		# Construct the replacement dictionary from the settings
+		# General replacement keys
+		self.replacementKeys["[source_file]"] = self.fetch("sourcefile")
 		self.replacementKeys["[run_days]"] = str(self.runDays)
 		self.replacementKeys["[run_hours]"] = str(self.runHours)
 		self.replacementKeys["[start_date]"] = str(self.startTime.strftime('%Y-%m-%d_%H:%M:%S'))
@@ -66,7 +71,6 @@ class AppSettings():
 		self.replacementKeys["[end_month]"] = str(self.endTime.month)
 		self.replacementKeys["[end_day]"] = str(self.endTime.day)
 		self.replacementKeys["[end_hour]"] = str(self.endTime.hour)
-		self.replacementKeys["[wrf_module]"] = self.fetch("wrfmodule")
 		self.replacementKeys["[geog_path]"] = self.fetch("geogdir")
 		self.replacementKeys["[table_path]"] = self.fetch("tabledir")
 		self.replacementKeys["[run_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8]
@@ -74,33 +78,51 @@ class AppSettings():
 		self.replacementKeys["[run_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/output"
 		self.replacementKeys["[run_postprd_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/postprd"
 		self.replacementKeys["[data_dir]"] = self.fetch("datadir") + '/' + self.fetch("modeldata") + '/' + self.fetch("starttime")
-		self.replacementKeys["[num_geogrid_nodes]"] = self.fetch("num_geogrid_nodes")
-		self.replacementKeys["[num_geogrid_processors]"] = self.fetch("num_geogrid_processors")
-		self.replacementKeys["[geogrid_walltime]"] = self.fetch("geogrid_walltime")
-		self.replacementKeys["[mpi_geogrid_total]"] = str(int(self.fetch("num_geogrid_nodes")) * int(self.fetch("num_geogrid_processors")))
-		self.replacementKeys["[num_metgrid_nodes]"] = self.fetch("num_metgrid_nodes")
-		self.replacementKeys["[num_metgrid_processors]"] = self.fetch("num_metgrid_processors")
-		self.replacementKeys["[metgrid_walltime]"] = self.fetch("metgrid_walltime")
-		self.replacementKeys["[mpi_metgrid_total]"] = str(int(self.fetch("num_metgrid_nodes")) * int(self.fetch("num_metgrid_processors")))
-		self.replacementKeys["[num_real_nodes]"] = self.fetch("num_real_nodes")
-		self.replacementKeys["[num_real_processors]"] = self.fetch("num_real_processors")
-		self.replacementKeys["[real_walltime]"] = self.fetch("real_walltime")
-		self.replacementKeys["[mpi_real_total]"] = str(int(self.fetch("num_real_nodes")) * int(self.fetch("num_real_processors")))	
-		self.replacementKeys["[num_wrf_nodes]"] = self.fetch("num_wrf_nodes")
-		self.replacementKeys["[num_wrf_processors]"] = self.fetch("num_wrf_processors")
-		self.replacementKeys["[wrf_walltime]"] = self.fetch("wrf_walltime")
-		self.replacementKeys["[mpi_wrf_total]"] = str(int(self.fetch("num_wrf_nodes")) * int(self.fetch("num_wrf_processors")))
-		self.replacementKeys["[num_upp_nodes]"] = self.fetch("num_upp_nodes")
-		self.replacementKeys["[num_upp_processors]"] = self.fetch("num_upp_processors")
-		self.replacementKeys["[upp_walltime]"] = self.fetch("upp_walltime")
-		self.replacementKeys["[mpi_upp_total]"] = str(int(self.fetch("num_upp_nodes")) * int(self.fetch("num_upp_processors")))	
+		self.replacementKeys["[wrfout_output_dir]"] = self.fetch("wrfdir") + '/' + self.fetch("starttime")[0:8] + "/wrfout"
+		self.replacementKeys["[wrf_nio_tasks_per_group]"] = self.fetch("wrf_nio_tasks_per_group")
+		self.replacementKeys["[wrf_nio_groups]"] = self.fetch("wrf_nio_groups")
+		self.replacementKeys["[wrf_numtiles]"] = self.fetch("wrf_numtiles")
+		# Keys for the namelist.input parameters
+		self.replacementKeys["[wrf_debug_level]"] = self.fetch("wrf_debug_level")
+		self.replacementKeys["[e_we]"] = self.fetch("e_we")
+		self.replacementKeys["[e_sn]"] = self.fetch("e_sn")
+		self.replacementKeys["[e_vert]"] = self.fetch("e_vert")
+		self.replacementKeys["[geog_data_res]"] = self.fetch("geog_data_res")
+		self.replacementKeys["[dx_y]"] = self.fetch("dx_y")
+		self.replacementKeys["[map_proj]"] = self.fetch("map_proj")
+		self.replacementKeys["[ref_lat]"] = self.fetch("ref_lat")
+		self.replacementKeys["[ref_lon]"] = self.fetch("ref_lon")
+		self.replacementKeys["[truelat1]"] = self.fetch("truelat1")
+		self.replacementKeys["[truelat2]"] = self.fetch("truelat2")
+		self.replacementKeys["[stand_lon]"] = self.fetch("stand_lon")
+		self.replacementKeys["[p_top_requested]"] = self.fetch("p_top_requested")
+		self.replacementKeys["[num_metgrid_levels]"] = self.fetch("num_metgrid_levels")
+		self.replacementKeys["[num_metgrid_soil_levels]"] = self.fetch("num_metgrid_soil_levels")
+		self.replacementKeys["[mp_physics]"] = self.fetch("mp_physics")
+		self.replacementKeys["[ra_lw_physics]"] = self.fetch("ra_lw_physics")
+		self.replacementKeys["[ra_sw_physics]"] = self.fetch("ra_sw_physics")
+		self.replacementKeys["[radt]"] = self.fetch("radt")
+		self.replacementKeys["[sf_sfclay_physics]"] = self.fetch("sf_sfclay_physics")
+		self.replacementKeys["[sf_surface_physics]"] = self.fetch("sf_surface_physics")
+		self.replacementKeys["[bl_pbl_physics]"] = self.fetch("bl_pbl_physics")
+		self.replacementKeys["[bldt]"] = self.fetch("bldt")
+		self.replacementKeys["[cu_physics]"] = self.fetch("cu_physics")
+		self.replacementKeys["[cudt]"] = self.fetch("cudt")
+		self.replacementKeys["[num_soil_layers]"] = self.fetch("num_soil_layers")
+		self.replacementKeys["[num_land_cat]"] = self.fetch("num_land_cat")
+		self.replacementKeys["[sf_urban_physics]"] = self.fetch("sf_urban_physics")
+		self.replacementKeys["[hail_opt]"] = self.fetch("hail_opt")
+		self.replacementKeys["[prec_acc_dt]"] = self.fetch("prec_acc_dt")
+		self.replacementKeys["[io_vars]"] = "iofields_filename                   = 'IO_VARS.txt',\n" if self.fetch("use_io_vars") == "1" else ""
 	 
-	def replace(self, str):
-		if not str:
-			return str
-		fStr = str
+	def replace(self, inStr):
+		if not inStr:
+			return inStr
+		fStr = inStr
 		for key, value in self.replacementKeys.items():
-			fStr = fStr.replace(key, value)
+			kStr = str(key)
+			vStr = str(value)
+			fStr = fStr.replace(kStr, vStr)
 		return fStr
 		
 	def whoami(self):
