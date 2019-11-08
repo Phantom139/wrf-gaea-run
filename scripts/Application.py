@@ -211,7 +211,7 @@ class Application():
 				target_file.write("wait $PID_Metgrid" + "\n\n")	
 				# Finally, run the real.exe process
 				target_file.write("cd " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + '/' + "output\n\n")
-				target_file.write("mpirun -np " + (int(settings.fetch("num_prerun_nodes")) * int(settings.fetch("num_prerun_processors"))) + " real.exe &" + '\n')
+				target_file.write("mpirun -np " + str(int(settings.fetch("num_prerun_nodes")) * int(settings.fetch("num_prerun_processors"))) + " real.exe &" + '\n')
 				target_file.write("PID_Real=$!" + '\n')
 				target_file.write("wait $PID_Real" + "\n\n")
 			logger.write("  -- Done")	
