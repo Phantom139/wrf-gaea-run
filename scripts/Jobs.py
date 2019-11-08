@@ -340,7 +340,7 @@ class Postprocessing_Steps:
 				if(self.aSet.fetch("unipost_out") == "grib"):
 					upp_job_contents += "\nln -sf " + uppDir + "parm/wrf_cntrl.parm fort.14"
 				
-				aprun = "mpirun -np " + (int(settings.fetch("num_upp_nodes")) * int(settings.fetch("num_upp_processors"))) + " unipost.exe > " + logName + " &\n"
+				aprun = "mpirun -np " + str(int(settings.fetch("num_upp_nodes")) * int(settings.fetch("num_upp_processors"))) + " unipost.exe > " + logName + " &\n"
 				aprun += "sleep 5\n"
 				upp_job_contents += "\n" + aprun + '\n\n'
 				

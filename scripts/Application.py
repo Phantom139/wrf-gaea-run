@@ -179,7 +179,7 @@ class Application():
 
 				target_file.write("cd " + settings.fetch("wrfdir") + '/' + settings.fetch("starttime")[0:8] + "\n\n")
 				
-				target_file.write("mpirun -np " + (int(settings.fetch("num_prerun_nodes")) * int(settings.fetch("num_prerun_processors"))) + " geogrid.exe &" + '\n')
+				target_file.write("mpirun -np " + str(int(settings.fetch("num_prerun_nodes")) * int(settings.fetch("num_prerun_processors"))) + " geogrid.exe &" + '\n')
 			logger.write("  -- Done")
 			# Write prerun.job
 			logger.write("  -- writting prerun.job")
@@ -206,7 +206,7 @@ class Application():
 					target_file.write("wait $PID_Ungrib" + '\n')
 					i += 1
 				# The next process is metgrid.
-				target_file.write("mpirun -np " + (int(settings.fetch("num_prerun_nodes")) * int(settings.fetch("num_prerun_processors"))) + " metgrid.exe &" + '\n')
+				target_file.write("mpirun -np " + str(int(settings.fetch("num_prerun_nodes")) * int(settings.fetch("num_prerun_processors"))) + " metgrid.exe &" + '\n')
 				target_file.write("PID_Metgrid=$!" + '\n')
 				target_file.write("wait $PID_Metgrid" + "\n\n")	
 				# Finally, run the real.exe process
@@ -226,7 +226,7 @@ class Application():
 
 				target_file.write("source " + settings.fetch("sourcefile") + '\n')
 				target_file.write("ulimit -s unlimited\n")				
-				target_file.write("mpirun -np " + (int(settings.fetch("num_wrf_nodes")) * int(settings.fetch("num_wrf_processors"))) + " wrf.exe")		
+				target_file.write("mpirun -np " + str(int(settings.fetch("num_wrf_nodes")) * int(settings.fetch("num_wrf_processors"))) + " wrf.exe")		
 			logger.write("  -- Done")
 		logger.write("  -> All file write operations complete")	
 		return True
