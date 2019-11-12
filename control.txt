@@ -13,7 +13,7 @@
 debugmode 0 #Leave this as zero unless debugging the wrf-run package
 sourcefile /data1/climlab/wrf-gaea-run/source
 geogdir /data1/climlab/wrf_geog
-tabledir /data1/climlab/wrf-gaea-run/vtables
+tabledir /data1/climlab/shared_tables
 constantsdir /data1/climlab/wrf-gaea-run/constants
 datadir /data1/climlab/model_data
 wrfdir /data1/climlab/runs
@@ -31,9 +31,9 @@ modeldata NARR
 modeldataforecasthour 0
 # Job Step Flags (1 - On, 0 - Off)
 run_prerunsteps 1 #NOTE: This should ALWAYS be on unless debugging.
-run_geogrid 0
-run_preprocessing_jobs 1
-run_wrf 1
+run_geogrid 1
+run_preprocessing_jobs 0
+run_wrf 0
 run_postprocessing 0
 post_run_unipost 0
 post_run_python 1
